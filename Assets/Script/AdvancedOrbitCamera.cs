@@ -176,7 +176,7 @@ public class AdvancedOrbitCamera : MonoBehaviour
         targetY = setdefaultVerticalRotation1;
     }
 
-    private void ApplyInitialView()
+    public void ApplyInitialView()
     {
         defaultZoom = Mathf.Clamp(defaultZoom, minZoom, maxZoom);
         if (restrictVerticalRotation)

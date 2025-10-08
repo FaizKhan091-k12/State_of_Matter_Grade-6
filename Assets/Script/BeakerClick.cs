@@ -7,15 +7,33 @@ public class BeakerClick : MonoBehaviour
     /// OnMouseUpAsButton is only called when the mouse is released over
     /// the same GUIElement or Collider as it was pressed.
     /// </summary>
-   public UnityEvent OnClickEvent;
-    public Animation anim;
-    public string anim_Clip;
+    public bool one, two, three, oneTime;
+    public UnityEvent OnClickEvent;
+
     void OnMouseUpAsButton()
     {
         OnClickEvent.Invoke();
         gameObject.transform.localScale = Vector3.zero;
-        anim.Play(anim_Clip);
-     
-    }
+
+        if (one)
+        {
    
+            DoTweenManager.Instance.one = true;
+        }
+        if (two)
+        {
+
+            DoTweenManager.Instance.two = true;
+        }
+        if (three)
+        {
+
+            DoTweenManager.Instance.three = true;
+        }
+
+
+    }
+
+   
+
 }
