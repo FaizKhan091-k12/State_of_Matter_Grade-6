@@ -53,6 +53,8 @@ public class DoTweenManager : MonoBehaviour
     public Button nextBtn, clickHeatBtn;
     public Transform orbitTarget, ice_Cubes, seconBeaker,newTarget;
 
+    [Header("Quiz")]
+    public AudioSource lets_See;
 
     void Awake()
     {
@@ -300,7 +302,24 @@ public class DoTweenManager : MonoBehaviour
     {
 
         typewriterTMPboard.TypeText("1. In solids, particles are tightly packed, giving a fixed shape and volume.\n \n2. In liquids, particles slide past one another—fixed volume but no fixed shape.\n \n3. In gases, particles are far apart and move freely—no fixed shape or volume.\n \n4. Heating or cooling changes the speed of particles, leading to changes of state.", 40f);
-        StartCoroutine(targetShift());
+        //        StartCoroutine(targetShift());
+        Invoke(nameof(QuizState), 10f);
+    }
+
+
+    public void QuizState()
+    {
+
+        nextBtn.onClick.RemoveAllListeners();
+        nextBtn.onClick.AddListener(delegate { nextBtn.transform.localScale = Vector3.zero; });
+        
+        
+        BoyDialogueBehaviour.Instance.isOpen = false;
+        BoyDialogueBehaviour.Instance.OpenDialogueBox();
+
+        typewriter.TypeText("Let’s see what you’ve learned. Click on the highlighted next button for an exciting quiz.", 15f,()=> { nextBtn.transform.localScale = Vector3.one; });
+        lets_See.Play();
+        
     }
 
     IEnumerator targetShift()
