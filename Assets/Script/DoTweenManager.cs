@@ -5,6 +5,7 @@ using System.Xml.Serialization;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UI.ProceduralImage;
 
 public class DoTweenManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class DoTweenManager : MonoBehaviour
     public static DoTweenManager Instance;
     public TMPValueLerp tMPValueLerp;
     public TypewriterTMP typewriterTMPboard;
+    public RectTransform inst; 
     [SerializeField] GameObject gamePlanCanvas;
     [SerializeField] GameObject dialogueBox;
     [SerializeField] AudioSource lets_Begin;
@@ -52,18 +54,18 @@ public class DoTweenManager : MonoBehaviour
     public Animator animator;
     public Button nextBtn, clickHeatBtn;
     public Transform orbitTarget, ice_Cubes, seconBeaker,newTarget;
-
+    public ProceduralImage thermo;
     [Header("Quiz")]
     public AudioSource lets_See;
-
+    public GameObject quiz_Panel;
+   
     void Awake()
     {
         Instance = this;
     }
     void Start()
     {
-
-
+        thermo.fillAmount = 0.35f;
         if (isDebugState) return;
 
 
@@ -209,7 +211,9 @@ public class DoTweenManager : MonoBehaviour
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         compareStates.SetActive(false);
         stateChange.SetActive(true);
+        uIPanelPivotLerp.transform.localScale = Vector3.one;
         uIPanelPivotLerp.TogglePanel();
+      //  inst.anchoredPosition = new Vector2(15, 15);
         typewriter.TypeText("Click Heat to warm the ice and watch the particles change.", 15f, () => { clickHeatBtn.interactable = true; });
         clickHeat.Play();
     }
@@ -287,7 +291,7 @@ public class DoTweenManager : MonoBehaviour
     }
     public void LastTemp()
     {
-        tMPValueLerp.StartLerp(25, -100, 6.5f);
+        tMPValueLerp.StartLerp(25, -10, 6.5f);
     }
     public void StateChangesEND()
     {
@@ -311,7 +315,12 @@ public class DoTweenManager : MonoBehaviour
     {
 
         nextBtn.onClick.RemoveAllListeners();
-        nextBtn.onClick.AddListener(delegate { nextBtn.transform.localScale = Vector3.zero; });
+        nextBtn.onClick.AddListener(delegate
+        {
+            nextBtn.transform.localScale = Vector3.zero;uIPanelPivotLerp.gameObject.transform.localScale = Vector3.zero;
+            quiz_Panel.SetActive(true);
+            BoyDialogueBehaviour.Instance.isOpen = true; BoyDialogueBehaviour.Instance.OpenDialogueBox();
+        });
         
         
         BoyDialogueBehaviour.Instance.isOpen = false;

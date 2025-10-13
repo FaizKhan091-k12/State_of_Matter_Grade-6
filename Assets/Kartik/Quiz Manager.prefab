@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &357755641161482493
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4330368025721426779}
+  - component: {fileID: 1376086756350916715}
+  m_Layer: 0
+  m_Name: Quiz Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4330368025721426779
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357755641161482493}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 360.51147, y: 282.9037, z: -0.98609066}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1376086756350916715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 357755641161482493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3bc0a3420310d3a40980cd2faa6aae0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  topicText: {fileID: 0}
+  questionText: {fileID: 0}
+  optionsParent: {fileID: 0}
+  optionButtonPrefab: {fileID: 4475254973432850009, guid: 9405aaf16d4f66a48babc40f7fc58e75, type: 3}
+  feedbackText: {fileID: 0}
+  nextButton: {fileID: 0}
+  greenTestTubeSprite: {fileID: 21300000, guid: 6c365090bbf7fd945b7c637e0841a0ca, type: 3}
+  redTestTubeSprite: {fileID: 21300000, guid: ae86fc2937a1650429b743ff4209d9fd, type: 3}
+  questions:
+  - topic: "Question 1 \u2013 Solids"
+    prompt: How are particles arranged in a solid?
+    options:
+    - (A) Spread far apart and moving freely
+    - (B) Packed tightly, only vibrating
+    - (C) Sliding past each other
+    correctIndex: 1
+    correctFeedback: "Correct \u2192 \"Yes! That\u2019s why solids have a fixed shape.\""
+    wrongFeedback: "Wrong \u2192 \"Look again\u2014solids are tightly packed and
+      only vibrate.\""
+  - topic: "Question 2 \u2013 Liquids"
+    prompt: Do liquids have a fixed shape?
+    options:
+    - (A) Yes
+    - (B) No
+    correctIndex: 1
+    correctFeedback: "Correct \u2192 \"Right! Liquids take the shape of their container.\""
+    wrongFeedback: "Wrong \u2192 \"Not quite\u2014liquids change shape but keep their
+      volume.\""
+  - topic: "Question 3 \u2013 Gases"
+    prompt: What happens to gas particles when you heat them?
+    options:
+    - (A) They slow down and pack together
+    - (B) They speed up and spread out
+    - (C) They stop moving completely
+    correctIndex: 1
+    correctFeedback: "Correct \u2192 \"Great! Heat makes particles move faster and
+      spread out.\""
+    wrongFeedback: "Wrong \u2192 \"Remember, heat gives particles more energy to
+      move.\""
+  - topic: "Question 4 \u2013 State Changes"
+    prompt: Which process changes a liquid into a gas?
+    options:
+    - (A) Freezing
+    - (B) Boiling
+    - (C) Condensation
+    correctIndex: 1
+    correctFeedback: "Correct \u2192 \"Exactly! Boiling (or evaporation) turns liquid
+      into gas.\""
+    wrongFeedback: "Wrong \u2192 \"Check again\u2014boiling changes liquids into
+      gases.\""
+  - topic: "Question 5 \u2013 Big Idea"
+    prompt: What causes matter to change from one state to another?
+    options:
+    - (A) Adding or removing heat (temperature change)
+    - (B) Changing the container
+    - (C) Shaking the particles
+    correctIndex: 0
+    correctFeedback: "Correct \u2192 \"Yes! Heat changes particle speed, which changes
+      state.\""
+    wrongFeedback: "Wrong \u2192 \"Not quite\u2014it\u2019s temperature that makes
+      particles move differently.\""
