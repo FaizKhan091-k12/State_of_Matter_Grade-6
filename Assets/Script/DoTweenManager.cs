@@ -71,9 +71,9 @@ public class DoTweenManager : MonoBehaviour
 
         nextBtn.gameObject.SetActive(false);
         stateChange.gameObject.SetActive(false);
-        solid.SetActive(true);
+       // solid.SetActive(true);
         solidLabel.SetActive(true);
-        solidBeakeroutline.gameObject.SetActive(true);
+      //  solidBeakeroutline.gameObject.SetActive(true);
 
         dialogueBox.transform.localScale = Vector3.zero;
         gamePlanCanvas.SetActive(true);
@@ -119,11 +119,12 @@ public class DoTweenManager : MonoBehaviour
     {
         dialogueBox.transform.localScale = Vector3.zero;
         dialogueBox.transform.DOScale(Vector3.one, .15f).SetEase(Ease.OutFlash);
-        typewriter.TypeText("Let’s begin with solids. Look at these particles. Click on them to observe their motion.", 15f, () =>
-        {
-            solidBeakeroutline.GetComponent<BoxCollider>().enabled = true; solidBeakeroutline.GetComponent<OutlineBehaviour>().enabled = true;
-        });
-        lets_Begin.Play();
+        typewriter.TypeText("Click on any of these given buttons.", 15f);
+        // typewriter.TypeText("Let’s begin with solids. Look at these particles. Click on them to observe their motion.", 15f, () =>
+        // {
+        //     solidBeakeroutline.GetComponent<MeshCollider>().enabled = true; solidBeakeroutline.GetComponent<OutlineBehaviour>().enabled = true;
+        // });
+        //lets_Begin.Play();
     }
 
     public void SolidStateComplete()
@@ -132,7 +133,7 @@ public class DoTweenManager : MonoBehaviour
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         typewriter.TypeText("Notice how they are packed closely and only vibrate. That’s why solids have a fixed shape and volume.", 15f);
         notice.Play();
-        Invoke(nameof(LetStartLiqState), 10f);
+      //  Invoke(nameof(LetStartLiqState), 10f);
     }
 
     public void LetStartLiqState()
@@ -158,7 +159,7 @@ public class DoTweenManager : MonoBehaviour
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         typewriter.TypeText("See that? Liquid particles can move past each other. That’s why liquids don’t have a fixed shape—but they do have a fixed volume.", 15f);
 
-        Invoke(nameof(LetStartGasState), 12f);
+       // Invoke(nameof(LetStartGasState), 12f);
     }
 
     public void LetStartGasState()
@@ -185,7 +186,7 @@ public class DoTweenManager : MonoBehaviour
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         typewriter.TypeText("Gas particles move freely and spread to fill the whole container. That’s why gases have no fixed shape or volume!", 15f);
         gas_Completed.Play();
-        Invoke(nameof(StartCompareStates), 9f);
+      //  Invoke(nameof(StartCompareStates), 9f);
 
     }
 

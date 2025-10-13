@@ -13,23 +13,24 @@ public class BeakerClick : MonoBehaviour
     void OnMouseUpAsButton()
     {
         OnClickEvent.Invoke();
-        gameObject.transform.localScale = Vector3.zero;
+        gameObject.GetComponent<OutlineBehaviour>().enabled = false;
+       // gameObject.transform.localScale = Vector3.zero;
 
-        if (one)
-        {
+        // if (one)
+        // {
    
-            DoTweenManager.Instance.one = true;
-        }
-        if (two)
-        {
+        //     DoTweenManager.Instance.one = true;
+        // }
+        // if (two)
+        // {
 
-            DoTweenManager.Instance.two = true;
-        }
-        if (three)
-        {
+        //     DoTweenManager.Instance.two = true;
+        // }
+        // if (three)
+        // {
 
-            DoTweenManager.Instance.three = true;
-        }
+        //     DoTweenManager.Instance.three = true;
+        // }
 
 
     }

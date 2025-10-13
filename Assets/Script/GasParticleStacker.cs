@@ -61,10 +61,21 @@ public class GasParticleStacker : MonoBehaviour
     private List<Rigidbody> rbs = new List<Rigidbody>();
     private bool isGas = false;
 
-    void Awake()
+    // void Awake()
+    // {
+    //     if (spawnOnStart) Spawn();
+    //     if (autoBecomeGas) StartGas();
+    // }
+    void OnEnable()
     {
+        
         if (spawnOnStart) Spawn();
         if (autoBecomeGas) StartGas();
+    }
+
+    void OnDisable()
+    {
+        Clear();
     }
 
     #region Spawn / Clear

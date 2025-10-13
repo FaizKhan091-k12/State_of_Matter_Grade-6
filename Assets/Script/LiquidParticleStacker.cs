@@ -64,10 +64,20 @@ public class LiquidParticleStacker : MonoBehaviour
     private List<Rigidbody> rbs = new List<Rigidbody>();
     private bool isLiquid = false;
 
-    void Awake()
+    // void Awake()
+    // {
+    //     if (spawnOnStart) Spawn();
+    //     if (autoBecomeLiquid) StartLiquid();
+    // }
+    void OnEnable()
     {
-        if (spawnOnStart) Spawn();
+         if (spawnOnStart) Spawn();
         if (autoBecomeLiquid) StartLiquid();
+    }
+
+    void OnDisable()
+    {
+        Clear();
     }
 
     #region Spawn / Clear

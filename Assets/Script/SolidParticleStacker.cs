@@ -60,10 +60,20 @@ public class SolidParticleStacker : MonoBehaviour
         public float seed;
     }
 
-    void Awake()
+    // void Awake()
+    // {
+    //     if (spawnOnStart)
+    //         Spawn();
+    // }
+
+    void OnEnable()
     {
         if (spawnOnStart)
             Spawn();
+    }
+    void OnDisable()
+    {
+        Clear();
     }
 
     [ContextMenu("Spawn")]
