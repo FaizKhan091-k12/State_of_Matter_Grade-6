@@ -12,9 +12,7 @@ public class ButtonsBehaviour : MonoBehaviour
 
     void Start()
     {
-   liquid.transform.localScale = Vector3.zero;
-  solid.transform.localScale = Vector3.zero;
-  gas.transform.localScale = Vector3.zero;
+        ButtonScaleToZero();
         solid.onClick.AddListener(delegate
         {
             foreach (var item in threeHighlighted)
@@ -26,15 +24,15 @@ public class ButtonsBehaviour : MonoBehaviour
         });
 
         liquid.onClick.AddListener(delegate
-               {
+        {
 
-                   foreach (var item in threeHighlighted)
-                   {
-                       item.SetActive(false);
-                       threeHighlighted[1].SetActive(true);
-                   }
-                   LiquidEvent.Invoke();
-               });
+            foreach (var item in threeHighlighted)
+            {
+                item.SetActive(false);
+                threeHighlighted[1].SetActive(true);
+            }
+            LiquidEvent.Invoke();
+        });
 
 
         gas.onClick.AddListener(delegate
@@ -48,6 +46,14 @@ public class ButtonsBehaviour : MonoBehaviour
         });
 
     }
+
+    public void ButtonScaleToZero()
+    {
+        liquid.transform.localScale = Vector3.zero;
+        solid.transform.localScale = Vector3.zero;
+        gas.transform.localScale = Vector3.zero;
+    }
+
     public void ButtonPOP()
     {
         Invoke(nameof(SolidPOP), 1f);
