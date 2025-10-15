@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -43,6 +44,7 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
                 item.SetActive(false);
                 highlighted[2].SetActive(true);
             }
+            StageButtonClick();
         });
 
         menuBtn[3].onClick.AddListener(delegate
@@ -59,6 +61,11 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
     public void CompareButtonClick()
     {
         CompareEvent.Invoke();
-        
+
+    }
+    
+    public void StageButtonClick()
+    {
+        StagesEvent.Invoke();
     }
 }

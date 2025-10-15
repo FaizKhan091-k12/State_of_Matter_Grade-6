@@ -82,6 +82,6 @@ public class ButtonsBehaviour : MonoBehaviour
     }
     public void TogglePanel()
     {
-        uIPanelPivotLerp.TogglePanel();
+        uIPanelPivotLerp.ClosePanel();
     }
 }

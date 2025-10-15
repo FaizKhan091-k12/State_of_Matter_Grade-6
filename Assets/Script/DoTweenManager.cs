@@ -11,7 +11,9 @@ public class DoTweenManager : MonoBehaviour
 {
     public bool isDebugState;
     public static DoTweenManager Instance;
+
     public TMPValueLerp tMPValueLerp;
+    public TMPValueLerp tMPValueLerp3d;
     public TypewriterTMP typewriterTMPboard;
     public RectTransform inst; 
     [SerializeField] GameObject gamePlanCanvas;
@@ -132,6 +134,7 @@ public class DoTweenManager : MonoBehaviour
         BoyDialogueBehaviour.Instance.isOpen = false;
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         typewriter.TypeText("Notice how they are packed closely and only vibrate. That’s why solids have a fixed shape and volume.", 15f);
+     
         notice.Play();
       //  Invoke(nameof(LetStartLiqState), 10f);
     }
@@ -225,26 +228,34 @@ public class DoTweenManager : MonoBehaviour
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         orbitTarget.SetParent(ice_Cubes);
         orbitTarget.transform.localPosition = Vector3.zero;
-        animator.SetBool("Mealting", true);
+        animator.Play("Mealting");
         typewriter.TypeText("Heating makes ice melt into liquid water.", 15f);
         mealting.Play();
-        Invoke(nameof(Temp), 1.5f);
-        Invoke(nameof(Boiling), 10f);
+        //Invoke(nameof(Temp), 1.5f);
+        //Invoke(nameof(Boiling), 10f);
+    }
+
+    public void PlayMeltingV2()
+    {
+        animator.Play("MealtingV2");
+        Invoke(nameof(Temp), 2f);
     }
     public void Temp()
     {
-        tMPValueLerp.StartLerp(-10, 0, 4.5f);
+        tMPValueLerp.StartLerp(-10, 0, 8f);
+        tMPValueLerp3d.StartLerp(-10, 0, 8f);
+
     }
     public void Boiling()
     {
-        animator.SetBool("Boiling", true);
-        tMPValueLerp.StartLerp(0, 40, 3f);
+        animator.Play("Boiling");
+        tMPValueLerp.StartLerp(0, 100, 11f);
+        tMPValueLerp3d.StartLerp(0, 100, 11f);
         Invoke(nameof(BoilingAudio), 3f);
 
     }
     public void BoilingAudio()
     {
-        tMPValueLerp.StartLerp(40, 100, 3f);
         BoyDialogueBehaviour.Instance.isOpen = false;
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         typewriter.TypeText("More heat turns water into gas.", 15f);
@@ -261,19 +272,19 @@ public class DoTweenManager : MonoBehaviour
 
     public void Condensation()
     {
-        animator.SetBool("Condensation", true);
-        Invoke(nameof(CondensationAudio), 4f);
+        animator.Play("Condensation");
+        Invoke(nameof(CondensationAudio), 5f);
 
     }
 
     public void CondensationAudio()
     {
-        tMPValueLerp.StartLerp(100, 25, 8);
+        tMPValueLerp.StartLerp(100, 0, 11);
         BoyDialogueBehaviour.Instance.isOpen = false;
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
         typewriter.TypeText("Cooling gas condenses into liquid.", 15f);
-        condensation.Play(); Debug.Log("Cooling");
-        Invoke(nameof(Freezing), 10f);
+        condensation.Play();
+       // Invoke(nameof(Freezing), 10f);
     }
 
     public void Freezing()
@@ -284,7 +295,7 @@ public class DoTweenManager : MonoBehaviour
         Invoke(nameof(LastTemp), 2.5f);
         BoyDialogueBehaviour.Instance.isOpen = false;
         BoyDialogueBehaviour.Instance.OpenDialogueBox();
-        animator.SetBool("Freezing", true);
+        animator.Play("Freezing");
         typewriter.TypeText("Further cooling freezes liquid into solid ice.", 15f);
         freezing.Play();
         Invoke(nameof(StateChangesEND), 12f);
@@ -331,15 +342,10 @@ public class DoTweenManager : MonoBehaviour
         lets_See.Play();
         
     }
-
-    IEnumerator targetShift()
+    public void ResetTargetPosition()
     {
-
-        float t = 0f;
-        while (t < 1)
-        {
-            orbitTarget.transform.localPosition = Vector3.Lerp(orbitTarget.transform.localPosition, newTarget.transform.localPosition, t * .2f);
-            yield return null;
-        }
+        orbitTarget.SetParent(newTarget.transform);
+        orbitTarget.transform.localPosition = Vector3.zero;
     }
+
 }
