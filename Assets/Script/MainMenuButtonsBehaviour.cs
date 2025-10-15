@@ -10,10 +10,12 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
     [SerializeField] Button[] menuBtn;
     [SerializeField] GameObject[] highlighted;
 
+    [SerializeField] public bool[] buttonclicked;
     public UnityEvent IntroductionEvent, CompareEvent, StagesEvent, QuizEvent;
 
     void Start()
     {
+      
         menuBtn[0].onClick.AddListener(delegate
         {
             foreach (var item in highlighted)
@@ -21,7 +23,12 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
                 item.SetActive(false);
                 highlighted[0].SetActive(true);
             }
-            IntroductionEvent.Invoke();
+            buttonsBehaviour.ButtonScaleToZero();
+            for (int i = 0; i < buttonclicked.Length; i++)
+            {
+                buttonclicked[i] = false;
+            }
+            buttonclicked[0] = true;
         });
 
 
@@ -32,8 +39,13 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
                 item.SetActive(false);
                 highlighted[1].SetActive(true);
             }
-            CompareButtonClick();
+           // CompareButtonClick();
             buttonsBehaviour.ButtonScaleToZero();
+            for (int i = 0; i < buttonclicked.Length; i++)
+            {
+                buttonclicked[i] = false;
+            }
+            buttonclicked[1] = true;
         });
 
 
@@ -44,7 +56,12 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
                 item.SetActive(false);
                 highlighted[2].SetActive(true);
             }
-            StageButtonClick();
+           // StageButtonClick();
+            for (int i = 0; i < buttonclicked.Length; i++)
+            {
+                buttonclicked[i] = false;
+            }
+            buttonclicked[2] = true;
         });
 
         menuBtn[3].onClick.AddListener(delegate
@@ -54,6 +71,11 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
                 item.SetActive(false);
                 highlighted[3].SetActive(true);
             }
+            for (int i = 0; i < buttonclicked.Length; i++)
+            {
+                buttonclicked[i] = false;
+            }
+            buttonclicked[3] = true;
         });
     }
 
@@ -63,9 +85,17 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
         CompareEvent.Invoke();
 
     }
-    
+
     public void StageButtonClick()
     {
         StagesEvent.Invoke();
+    }
+    public void IntroButtonClicked()
+    {
+        IntroductionEvent.Invoke();
+    }
+    public void QuizButtonClicked()
+    {
+        QuizEvent.Invoke();
     }
 }

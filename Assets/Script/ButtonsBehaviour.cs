@@ -10,6 +10,7 @@ public class ButtonsBehaviour : MonoBehaviour
 
     public UnityEvent SolidEvent, LiquidEvent, GasEvent;
 
+
     void Start()
     {
         ButtonScaleToZero();
@@ -49,9 +50,15 @@ public class ButtonsBehaviour : MonoBehaviour
 
     public void ButtonScaleToZero()
     {
+        foreach (var item in threeHighlighted)
+        {
+            item.SetActive(false);
+
+        }
         liquid.transform.localScale = Vector3.zero;
         solid.transform.localScale = Vector3.zero;
         gas.transform.localScale = Vector3.zero;
+        
     }
 
     public void ButtonPOP()
@@ -82,6 +89,7 @@ public class ButtonsBehaviour : MonoBehaviour
     }
     public void TogglePanel()
     {
+        uIPanelPivotLerp.transform.localScale = Vector3.one;
         uIPanelPivotLerp.ClosePanel();
     }
 }

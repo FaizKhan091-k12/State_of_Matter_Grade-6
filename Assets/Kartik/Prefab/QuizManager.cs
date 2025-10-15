@@ -17,6 +17,7 @@ public class Question
 
 public class QuizManager : MonoBehaviour
 {
+
     public GameObject resetBtn;
     public TypewriterTMP typewriterTMP;
     public BoyDialogueBehaviour boyDialogueBehaviour;
@@ -48,6 +49,10 @@ public class QuizManager : MonoBehaviour
     private int correctCount = 0;
     private int wrongCount = 0;
 
+    void OnEnable()
+    {
+        RestartQuiz();
+    }
     void Start()
     {
         correctCount = 0;
