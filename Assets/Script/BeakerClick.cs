@@ -31,21 +31,21 @@ public class BeakerClick : MonoBehaviour
             OnClickEvent.Invoke();
         }
 
-        // if (one)
-        // {
+        if (one)
+        {
    
-        //     DoTweenManager.Instance.one = true;
-        // }
-        // if (two)
-        // {
+            DoTweenManager.Instance.one = true;
+        }
+        if (two)
+        {
 
-        //     DoTweenManager.Instance.two = true;
-        // }
-        // if (three)
-        // {
+            DoTweenManager.Instance.two = true;
+        }
+        if (three)
+        {
 
-        //     DoTweenManager.Instance.three = true;
-        // }
+            DoTweenManager.Instance.three = true;
+        }
 
 
     }

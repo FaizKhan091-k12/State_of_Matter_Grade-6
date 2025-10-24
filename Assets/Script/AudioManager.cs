@@ -2,15 +2,28 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [SerializeField] AudioSource audioSource;
+
+    void Awake()
     {
-        
+        audioSource = GetComponent<AudioSource>();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void PlaySpecificDialogue(AudioClip audioClip)
     {
-        
+        if (!audioSource.isPlaying)
+        {
+            audioSource.PlayOneShot(audioClip);
+        }
+        else if (audioSource.isPlaying)
+        {
+            audioSource.Stop();
+            audioSource.PlayOneShot(audioClip);
+        }
+        else
+        {
+            Debug.Log("Error Playing Audio");
+        }
+      
     }
 }

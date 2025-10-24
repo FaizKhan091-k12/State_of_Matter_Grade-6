@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using DG.Tweening;
+using TMPro;
 public class ButtonsBehaviour : MonoBehaviour
 {
     public UIPanelPivotLerp uIPanelPivotLerp;
@@ -16,6 +17,9 @@ public class ButtonsBehaviour : MonoBehaviour
         ButtonScaleToZero();
         solid.onClick.AddListener(delegate
         {
+            DoTweenManager.Instance.state_S = true;
+            DoTweenManager.Instance.state_L = false;
+            DoTweenManager.Instance.state_G = false;
             foreach (var item in threeHighlighted)
             {
                 item.SetActive(false);
@@ -26,7 +30,9 @@ public class ButtonsBehaviour : MonoBehaviour
 
         liquid.onClick.AddListener(delegate
         {
-
+            DoTweenManager.Instance.state_S = false;
+            DoTweenManager.Instance.state_L = true;
+            DoTweenManager.Instance.state_G = false;
             foreach (var item in threeHighlighted)
             {
                 item.SetActive(false);
@@ -38,6 +44,9 @@ public class ButtonsBehaviour : MonoBehaviour
 
         gas.onClick.AddListener(delegate
         {
+            DoTweenManager.Instance.state_S = false;
+            DoTweenManager.Instance.state_L = false;
+            DoTweenManager.Instance.state_G = true;
             foreach (var item in threeHighlighted)
             {
                 item.SetActive(false);
@@ -48,8 +57,15 @@ public class ButtonsBehaviour : MonoBehaviour
 
     }
 
+    public void StateReset()
+    {
+        DoTweenManager.Instance.state_S = false;
+        DoTweenManager.Instance.state_L = false;
+        DoTweenManager.Instance.state_G = false;
+    }
     public void ButtonScaleToZero()
     {
+        StateReset();
         foreach (var item in threeHighlighted)
         {
             item.SetActive(false);
@@ -58,7 +74,7 @@ public class ButtonsBehaviour : MonoBehaviour
         liquid.transform.localScale = Vector3.zero;
         solid.transform.localScale = Vector3.zero;
         gas.transform.localScale = Vector3.zero;
-        
+
     }
 
     public void ButtonPOP()

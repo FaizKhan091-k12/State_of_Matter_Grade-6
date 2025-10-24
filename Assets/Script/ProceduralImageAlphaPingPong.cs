@@ -56,6 +56,7 @@ public class ProceduralImageAlphaPingPong : MonoBehaviour
     {
         isPlaying = true;
         timer = 0f;
+        proceduralImage.color = new Color(1, 1, 0, 1);
     }
 
     /// <summary>
@@ -65,6 +66,8 @@ public class ProceduralImageAlphaPingPong : MonoBehaviour
     {
         isPlaying = false;
         proceduralImage.color = originalColor;
+        proceduralImage.color = new Color(1, 1, 0, 0);
+
     }
 
     /// <summary>

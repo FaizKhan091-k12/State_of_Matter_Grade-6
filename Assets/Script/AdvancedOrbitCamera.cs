@@ -111,7 +111,22 @@ public class AdvancedOrbitCamera : MonoBehaviour
         }
         ApplyInitialView();
     }
+    public void SetZoom(float zoomValue)
+    {
+         setdefaultZoom = zoomValue;
 
+    }
+
+    public void SetHorizontal(float horiZontalValue)
+    {
+        setdefaultHorizontalRotation = horiZontalValue;
+
+    }
+      public void SetVertical(float verticalValue)
+    {
+        setdefaultVerticalRotation = verticalValue;
+
+    }
     public void StartRecoilShake()
     {
         enableRecoilShake = true;
@@ -141,6 +156,7 @@ public class AdvancedOrbitCamera : MonoBehaviour
 
     public void ResetValues()
     {
+        resetValues = true;
         if (resetValues)
         {
             FollowSpecificTarget();
@@ -163,6 +179,7 @@ public class AdvancedOrbitCamera : MonoBehaviour
 
     public void ResetTagetValues()
     {
+   
         float setdefaultVerticalRotation1 = 0;
         float setdefaultHorizontalRotation1 = 0;
         float setdefaultZoom = Mathf.Clamp(2.4f, minZoom, maxZoom);

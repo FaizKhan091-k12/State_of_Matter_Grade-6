@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class MainMenuButtonsBehaviour : MonoBehaviour
 {
+
     public ButtonsBehaviour buttonsBehaviour;
     [SerializeField] Button[] menuBtn;
     [SerializeField] GameObject[] highlighted;
@@ -83,6 +84,7 @@ public class MainMenuButtonsBehaviour : MonoBehaviour
     public void CompareButtonClick()
     {
         CompareEvent.Invoke();
+
 
     }
 

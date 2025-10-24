@@ -15,6 +15,7 @@ public class PlateClick : MonoBehaviour
         GetComponent<BoxCollider>().enabled = false;
         GetComponent<OutlineBehaviour>().enabled = false;
         DoTweenManager.Instance.Condensation();
+        DoTweenManager.Instance.ClickPlate();
 
     }
         
