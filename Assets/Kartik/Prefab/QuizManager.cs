@@ -87,7 +87,9 @@ public class QuizManager : MonoBehaviour
     // timer coroutine handle
     private Coroutine timerCoroutine;
     public GameObject crossButton, clock, tryAgainBadge;
-
+    public GameObject completed_Quiz, select_Text,lastGameObject;
+    public TextMeshProUGUI duplicateText;
+    public GameObject right, wrong;
 
     void OnEnable()
     {
@@ -457,6 +459,10 @@ public class QuizManager : MonoBehaviour
         {
             // 🎖️ Matter Master unlocked
             feedbackText.text = $" All {score}/{total} correct!\n Badge Unlocked: <b>Matter Master!</b>";
+            lastGameObject.SetActive(true);
+            duplicateText.text = feedbackText.text;
+            right.SetActive(false);
+            wrong.SetActive(false);
             if (badgeImage != null && matterMasterBadge != null)
             {
                 badgeImage.sprite = matterMasterBadge;
@@ -466,6 +472,8 @@ public class QuizManager : MonoBehaviour
                 {
                     clock.SetActive(false);
                     crossButton.SetActive(true);
+                    completed_Quiz.SetActive(true);
+                    select_Text.SetActive(false);
                     boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox();
                     typewriterTMP.TypeText("You did it, Particle Explorer! You’ve mastered the States of Matter.", 15f);
                 }
@@ -482,14 +490,20 @@ public class QuizManager : MonoBehaviour
                 typewriterTMP.TypeText("Great effort! Try again to earn your <b>Matter Master</b> badge.", 15f);
                 clock.SetActive(false);
                 crossButton.SetActive(true);
+                completed_Quiz.SetActive(true);
+                select_Text.SetActive(false);
             }
                 
             if (greatEfforts != null) greatEfforts.Play();
 
             // Encouragement message
             feedbackText.text =
-                $"Correct Answers: {correctCount}\nWrong Answers: {wrongCount}\n" 
+                $"Correct Answers: {correctCount}\nWrong Answers: {wrongCount}\n"
                 ;
+            duplicateText.text = feedbackText.text;
+                    right.SetActive(true);
+        wrong.SetActive(true);
+            lastGameObject.SetActive(true);
             if (badgeImage != null)
                 badgeImage.gameObject.SetActive(false);
         }
@@ -510,6 +524,11 @@ public class QuizManager : MonoBehaviour
         clock.SetActive(true);
         crossButton.SetActive(false);
         tryAgainBadge.SetActive(false);
+        completed_Quiz.SetActive(false);
+        lastGameObject.SetActive(false);
+        select_Text.SetActive(true);
+        right.SetActive(false);
+        wrong.SetActive(false);
         wrongCount = 0;
         currentQuestion = 0;
         if (badgeImage != null) badgeImage.gameObject.SetActive(false);
