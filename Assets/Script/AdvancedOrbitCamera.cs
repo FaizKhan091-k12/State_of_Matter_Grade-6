@@ -79,6 +79,13 @@ public class AdvancedOrbitCamera : MonoBehaviour
     private bool isHoldingZoomIn = false;
     private bool isHoldingZoomOut = false;
 
+    // ------------- New fields for touch gesture discrimination -------------
+    [Header("Touch Gesture Settings")]
+    [Tooltip("Delay after first touch before allowing single-finger rotation. If a second finger appears during this window, rotation is canceled and pinch zoom will start.")]
+    [SerializeField] private float multiTouchDelay = 0.08f; // ~80ms, tweakable
+    private float touchLockEndTime = 0f;
+    private int prevTouchCount = 0;
+    // -----------------------------------------------------------------------
 
     private void Awake()
     {
@@ -92,7 +99,6 @@ public class AdvancedOrbitCamera : MonoBehaviour
         if (!target)
             target = new GameObject("CameraTarget").transform;
 
-
         if (zoomInButton != null && zoomOutButton != null)
         {
             zoomInButton.onClick.AddListener(ZoomInOnce);
@@ -103,10 +109,8 @@ public class AdvancedOrbitCamera : MonoBehaviour
             AddHoldEvents(zoomOutButton, () => isHoldingZoomOut = true, () => isHoldingZoomOut = false);
         }
 
-
         if (launchButton != null)
         {
-
             launchButton.onClick.AddListener(LuanchManager);
         }
         ApplyInitialView();
@@ -114,18 +118,15 @@ public class AdvancedOrbitCamera : MonoBehaviour
     public void SetZoom(float zoomValue)
     {
          setdefaultZoom = zoomValue;
-
     }
 
     public void SetHorizontal(float horiZontalValue)
     {
         setdefaultHorizontalRotation = horiZontalValue;
-
     }
-      public void SetVertical(float verticalValue)
+    public void SetVertical(float verticalValue)
     {
         setdefaultVerticalRotation = verticalValue;
-
     }
     public void StartRecoilShake()
     {
@@ -179,7 +180,6 @@ public class AdvancedOrbitCamera : MonoBehaviour
 
     public void ResetTagetValues()
     {
-   
         float setdefaultVerticalRotation1 = 0;
         float setdefaultHorizontalRotation1 = 0;
         float setdefaultZoom = Mathf.Clamp(2.4f, minZoom, maxZoom);
@@ -217,7 +217,6 @@ public class AdvancedOrbitCamera : MonoBehaviour
         this.canOrbit = CanOrbit;
     }
 
-    
     private void LateUpdate()
     {
         if (!canOrbit || orbitCamera == null) return;
@@ -251,11 +250,15 @@ public class AdvancedOrbitCamera : MonoBehaviour
 
     private void HandleInput()
     {
+        // Check UI for pointer/mouse
         bool isPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 
-        // Mouse support
-    #if UNITY_EDITOR || UNITY_STANDALONE || (!UNITY_ANDROID && !UNITY_IOS && UNITY_WEBGL)
+        // ---------------------------
+        // Mouse support (desktop & WebGL with mice)
+        // ---------------------------
+    #if !UNITY_ANDROID && !UNITY_IOS
         bool isRotating = !requireRightClick || Input.GetMouseButton(1);
+        // Use left mouse for rotation if allowed
         if (!isPointerOverUI && isRotating && Input.GetMouseButton(0))
         {
             targetX += Input.GetAxis("Mouse X") * rotationSpeed;
@@ -263,6 +266,7 @@ public class AdvancedOrbitCamera : MonoBehaviour
             targetY += invertY ? yDelta : -yDelta;
         }
 
+        // Mouse scroll wheel (works on desktop browsers / platforms that expose it)
         float scroll = Input.mouseScrollDelta.y;
         if (Mathf.Abs(scroll) > 0.01f)
         {
@@ -270,29 +274,87 @@ public class AdvancedOrbitCamera : MonoBehaviour
         }
     #endif
 
-        // Touch support
-    #if UNITY_ANDROID || UNITY_IOS 
-        if (Input.touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved)
+        // ---------------------------
+        // Touch support (mobile devices, and WebGL running on mobile browsers)
+        // ---------------------------
+        // This block runs at runtime independent of compile-time platform checks,
+        // so it will handle pinch/drag on WebGL mobile browsers as well.
+
+        int touchCount = Input.touchCount;
+
+        // Detect touch count transitions to implement the small delay
+        if (touchCount != prevTouchCount)
         {
-            Vector2 delta = Input.GetTouch(0).deltaPosition;
-            targetX += delta.x * rotationSpeed * 0.02f;
-            targetY += (invertY ? delta.y : -delta.y) * rotationSpeed * 0.02f;
+            // First finger just began: start a short lock window to allow a second finger to arrive
+            if (prevTouchCount == 0 && touchCount == 1)
+            {
+                touchLockEndTime = Time.time + multiTouchDelay;
+            }
+
+            // If two or more touches are present now, we immediately allow pinch handling
+            if (touchCount >= 2)
+            {
+                // cancel rotation if it was about to start
+                touchLockEndTime = 0f; // immediate pinch
+            }
+
+            // if all touches ended, reset lock
+            if (touchCount == 0)
+            {
+                touchLockEndTime = 0f;
+            }
+
+            prevTouchCount = touchCount;
         }
-        else if (Input.touchCount == 2)
+
+        if (touchCount > 0)
         {
-            Touch t0 = Input.GetTouch(0);
-            Touch t1 = Input.GetTouch(1);
+            // SINGLE TOUCH: rotate only AFTER the short delay has passed without a second finger arriving
+            if (touchCount == 1)
+            {
+                Touch t = Input.GetTouch(0);
 
-            Vector2 prevPos0 = t0.position - t0.deltaPosition;
-            Vector2 prevPos1 = t1.position - t1.deltaPosition;
-            float prevMag = Vector2.Distance(prevPos0, prevPos1);
-            float currMag = Vector2.Distance(t0.position, t1.position);
-            float deltaMag = currMag - prevMag;
+                bool touchOverUI = (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(t.fingerId));
 
-            targetDistance -= deltaMag * zoomSpeed * 0.01f;
+                // Only allow rotation if the touch isn't over UI and lock time has passed
+                if (!touchOverUI && Time.time >= touchLockEndTime)
+                {
+                    if (t.phase == TouchPhase.Moved)
+                    {
+                        Vector2 delta = t.deltaPosition;
+                        targetX += delta.x * rotationSpeed * 0.02f;
+                        targetY += (invertY ? delta.y : -delta.y) * rotationSpeed * 0.02f;
+                    }
+                }
+                // If Time.time < touchLockEndTime, we intentionally do nothing here (waiting to see if a second finger arrives)
+            }
+            // MULTI-TOUCH: pinch to zoom (immediate once two fingers are present)
+            else if (touchCount >= 2)
+            {
+                Touch t0 = Input.GetTouch(0);
+                Touch t1 = Input.GetTouch(1);
+
+                // If either touch is over UI, ignore pinch
+                if (EventSystem.current != null &&
+                    (EventSystem.current.IsPointerOverGameObject(t0.fingerId) || EventSystem.current.IsPointerOverGameObject(t1.fingerId)))
+                {
+                    // ignore pinch if touching UI
+                }
+                else
+                {
+                    Vector2 prevPos0 = t0.position - t0.deltaPosition;
+                    Vector2 prevPos1 = t1.position - t1.deltaPosition;
+                    float prevMag = Vector2.Distance(prevPos0, prevPos1);
+                    float currMag = Vector2.Distance(t0.position, t1.position);
+                    float deltaMag = currMag - prevMag;
+
+                    // Scale the pinch by zoomSpeed, small multiplier to make it feel natural
+                    targetDistance -= deltaMag * zoomSpeed * 0.01f;
+                }
+            }
         }
-    #endif
 
+        // Clamp results
         targetDistance = Mathf.Clamp(targetDistance, minZoom, maxZoom);
         if (restrictVerticalRotation)
             targetY = Mathf.Clamp(targetY, minVerticalAngle, maxVerticalAngle);
@@ -343,8 +405,6 @@ public class AdvancedOrbitCamera : MonoBehaviour
         trigger.triggers.Add(press);
         trigger.triggers.Add(release);
     }
-
-
 
 #if UNITY_EDITOR
     public float CurrentUpRotation => currentY;
