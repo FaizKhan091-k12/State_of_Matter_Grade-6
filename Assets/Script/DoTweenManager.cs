@@ -66,12 +66,15 @@ public class DoTweenManager : MonoBehaviour
 
     [Header("Dialogues Clips")]
     [SerializeField]
-    AudioClip click_Solid, click_Beaker1, click_Beaker2, solid_Dialogue, click_Liquid, liquid_Dialogue, click_Gas, gas_Dialogue, comapre,
+    AudioClip click_Solid, click_Beaker1, click_Beaker2, solid_Dialogue, click_Liquid, liquid_Dialogue, click_Gas, gas_Dialogue, comapre1,compare2,
                                 tryHeating, clickHeat, meltingV2, increaseTemp, boiling, clickCold, clickPlate, liqtoIce, greatWork;
     [Header("HighLightes")]
-    [SerializeField] GameObject solidBtn, liquidBtn, gasBtn, compareBtn, stagesBtn, heatHigh;
+    [SerializeField] GameObject solidBtn, liquidBtn, gasBtn, compareBtn, stagesBtn, heatHigh, learning_Panel;
     [SerializeField] Button heatBtn;
-    [HideInInspector] public bool state_S, state_L, state_G,comapreDialogueCompleted;
+    [HideInInspector] public bool state_S, state_L, state_G, comapreDialogueCompleted;
+
+    [SerializeField] TextMeshProUGUI dialogue_Text;
+    public bool isthisQuiz;
 
     void Awake()
     {
@@ -134,11 +137,13 @@ public class DoTweenManager : MonoBehaviour
 
     public void OpenDialogueBox()
     {
+     
         dialogueBox.transform.localScale = Vector3.zero;
         dialogueBox.transform.DOScale(Vector3.one, .15f).SetEase(Ease.OutFlash);
         // typewriter.TypeText("Click on any of these given buttons.", 15f);
+        BoyWindowPopUp();
         solidBtn.SetActive(true);
-        typewriter.TypeText("Let’s begin with solids. Click on solid", 15f, () =>
+        typewriter.TypeText("Let’s begin with solids. Click on solid.", 10f, () =>
         {
             // solidBeakeroutline.GetComponent<MeshCollider>().enabled = true; solidBeakeroutline.GetComponent<OutlineBehaviour>().enabled = true;
         });
@@ -148,11 +153,12 @@ public class DoTweenManager : MonoBehaviour
 
     public void ClickBeaker()
     {
+      
     
         if (state_S || state_G)
         {
             BoyWindowPopUp();
-            typewriter.TypeText("Now tap the beaker to see the particles move", 15f);
+            typewriter.TypeText("Now, tap the beaker to see the particles move.", 15f);
             audioManager.PlaySpecificDialogue(click_Beaker1);
             solidBtn.SetActive(false);
         }
@@ -160,14 +166,14 @@ public class DoTweenManager : MonoBehaviour
         {
 
             BoyWindowPopUp();
-            typewriter.TypeText("Tap the beaker and see what happens", 15f);
+            typewriter.TypeText("Tap the beaker, and see what happens.", 15f);
             audioManager.PlaySpecificDialogue(click_Beaker2);
             solidBtn.SetActive(false);
         }
         else
         {
                       BoyWindowPopUp();
-            typewriter.TypeText("Now tap the beaker to see the particles move", 15f);
+            typewriter.TypeText("Now, tap the beaker to see the particles move.", 15f);
             audioManager.PlaySpecificDialogue(click_Beaker1);
             solidBtn.SetActive(false);
         }
@@ -180,7 +186,7 @@ public class DoTweenManager : MonoBehaviour
     {
 
         BoyWindowPopUp();
-        typewriter.TypeText("See how they are packed closely and only vibrate? That’s why solids have a fixed shape and volume.", 15f);
+        typewriter.TypeText("See how they are packed closely, and only vibrate? That’s why solids have a fixed shape and volume.", 15f);
 
         audioManager.PlaySpecificDialogue(solid_Dialogue);
         Invoke(nameof(LetStartLiqState), 10f);
@@ -246,34 +252,45 @@ public class DoTweenManager : MonoBehaviour
         state_L = false;
         state_G = true;
         BoyWindowPopUp();
-        typewriter.TypeText("Gas particles move freely and spread to fill the whole container. That’s why gases have no fixed shape or volume!", 15f, () => compareBtn.SetActive(true));
+        typewriter.TypeText("Gas particles move freely and spread to fill the whole container. That’s why gases have no fixed shape or volume!", 15f);
         audioManager.PlaySpecificDialogue(gas_Dialogue);
-
+        Invoke(nameof(LetsCompare), 10f);
 
     }
 
+    public void LetsCompare()
+    {
+        if (isthisQuiz || compareStates.activeInHierarchy || stateChange.activeInHierarchy || quiz_Panel.activeInHierarchy) return;
+        BoyWindowPopUp();
+        typewriter.TypeText("Let’s compare them! Click on 'Comparing All Three' tabs.", 15f, () => compareBtn.SetActive(true));
+        audioManager.PlaySpecificDialogue(comapre1);
+
+    }
     public void Compare()
     {
         BoyWindowPopUp();
-        typewriter.TypeText("Let’s compare them! Click each state to see how particle arrangement and motion are different.", 15f, () => comapreDialogueCompleted = true);
-        audioManager.PlaySpecificDialogue(comapre);
+        typewriter.TypeText("Click each state to see how particle arrangement and motion are different.", 15f, () => comapreDialogueCompleted = true);
+        audioManager.PlaySpecificDialogue(compare2);
     }
     public void CompareCompleted()
     {
         if (compareState && comapreDialogueCompleted)
         {
             stagesBtn.SetActive(true);
+            StateChangesIntro();
+            compareState = false;
             comapreDialogueCompleted = false;
         }
     }
 
     public void StateChangesIntro()
     {
+        if (isthisQuiz) return;
         heatHigh.SetActive(false);
         heatBtn.interactable = false;
         audioManager.PlaySpecificDialogue(tryHeating);
         BoyWindowPopUp();
-        typewriter.TypeText("Now let’s see how matter changes from one state to another. Try heating or cooling the particles!", 15f, () => ClickHeat());
+        typewriter.TypeText("Now, let’s see how matter changes from one state to another. Try heating or cooling the particles! Click to see the conversion of states.", 15f);
     }
 
     public void ClickHeat()
@@ -343,6 +360,7 @@ public class DoTweenManager : MonoBehaviour
 
     public void IncreaseTempMore()
     {
+        if (isthisQuiz || !stateChange.activeInHierarchy) return;
         audioManager.PlaySpecificDialogue(increaseTemp);
         typewriter.TypeText("Increase the temperature more to show boiling.", 15f);
     }
@@ -357,7 +375,7 @@ public class DoTweenManager : MonoBehaviour
 
     }
     public void BoilingAudio()
-    {
+    {if (isthisQuiz  || !stateChange.activeInHierarchy) return;
         BoyWindowPopUp();
         typewriter.TypeText("Heating makes ice melt into water. More heat turns water into gas.", 15f);
         audioManager.PlaySpecificDialogue(boiling);
@@ -368,7 +386,7 @@ public class DoTweenManager : MonoBehaviour
     {
         audioManager.PlaySpecificDialogue(clickCold);
         BoyWindowPopUp();
-        typewriter.TypeText("Click Cold, then click the highlighted ice plate to start the condensation process", 15f);
+        typewriter.TypeText("Click on ‘Cold.’ Next, select the highlighted ice plate to begin the condensation process.", 15f);
     }
 
     public void ClickPlate()
@@ -379,7 +397,7 @@ public class DoTweenManager : MonoBehaviour
         Invoke(nameof(ClickBeakerLiqtoIce), 18f);
     }
     public void ClickBeakerLiqtoIce()
-    {
+    {if (isthisQuiz  || !stateChange.activeInHierarchy) return;
         audioManager.PlaySpecificDialogue(liqtoIce);
         BoyWindowPopUp();
         typewriter.TypeText("Click on the beaker to further cool. This freezes the liquid into solid ice.", 15f);
@@ -401,7 +419,7 @@ public class DoTweenManager : MonoBehaviour
     }
 
     public void CondensationAudio()
-    {
+    {if (isthisQuiz  || !stateChange.activeInHierarchy) return;
         tMPValueLerp.StartLerp(100, 25, 11);
         // BoyDialogueBehaviour.Instance.isOpen = false;
         // BoyDialogueBehaviour.Instance.OpenDialogueBox();
@@ -430,11 +448,35 @@ public class DoTweenManager : MonoBehaviour
     }
 
     public void End()
-    {
+    {if (isthisQuiz || !stateChange.activeInHierarchy) return;
         BoyWindowPopUp();
         typewriter.TypeText("Great work! Here are the takeaways from our simulation.", 15f);
         audioManager.PlaySpecificDialogue(greatWork);
+        learning_Panel.SetActive(true);
     }
+
+
+    public void StopAllAudio()
+    {
+        BoyDialogueBehaviour.Instance.isOpen = true;
+        BoyDialogueBehaviour.Instance.OpenDialogueBox();
+        typewriter.StopTyping();
+        typewriter.targetText.text = " ";
+        audioManager.StopAll();
+       
+    }
+    public void QuizTrue()
+    {
+        isthisQuiz = true;
+        state_G = false;
+        state_L = false;
+        state_S = false;
+    }
+    public void QuizFalse()
+    {
+         isthisQuiz = false;
+    }
+
     public void StateChangesEND()
     {
         // BoyDialogueBehaviour.Instance.isOpen = false;

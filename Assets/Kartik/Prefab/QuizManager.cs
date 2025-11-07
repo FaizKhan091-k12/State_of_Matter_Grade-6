@@ -86,6 +86,8 @@ public class QuizManager : MonoBehaviour
 
     // timer coroutine handle
     private Coroutine timerCoroutine;
+    public GameObject crossButton, clock, tryAgainBadge;
+
 
     void OnEnable()
     {
@@ -460,20 +462,34 @@ public class QuizManager : MonoBehaviour
                 badgeImage.sprite = matterMasterBadge;
                 badgeImage.gameObject.SetActive(true);
                 if (boyDialogueBehaviour != null) { boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox(); }
-                if (typewriterTMP != null) typewriterTMP.TypeText("You did it, Particle Explorer! You’ve mastered the States of Matter.", 15f);
+                if (typewriterTMP != null)
+                {
+                    clock.SetActive(false);
+                    crossButton.SetActive(true);
+                    boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox();
+                    typewriterTMP.TypeText("You did it, Particle Explorer! You’ve mastered the States of Matter.", 15f);
+                }
                 if (youdid != null) youdid.Play();
             }
         }
         else
         {
             if (boyDialogueBehaviour != null) { boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox(); }
-            if (typewriterTMP != null) typewriterTMP.TypeText("Great effort! Try again to earn your <b>Matter Master</b> badge.", 15f);
+            if (typewriterTMP != null)
+            {
+                boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox();
+                tryAgainBadge.SetActive(true);
+                typewriterTMP.TypeText("Great effort! Try again to earn your <b>Matter Master</b> badge.", 15f);
+                clock.SetActive(false);
+                crossButton.SetActive(true);
+            }
+                
             if (greatEfforts != null) greatEfforts.Play();
 
             // Encouragement message
             feedbackText.text =
-                $"Correct Answers: {correctCount}\nWrong Answers: {wrongCount}\n" +
-                "Great effort! Try again to earn your <b>Matter Master</b> badge.";
+                $"Correct Answers: {correctCount}\nWrong Answers: {wrongCount}\n" 
+                ;
             if (badgeImage != null)
                 badgeImage.gameObject.SetActive(false);
         }
@@ -491,6 +507,9 @@ public class QuizManager : MonoBehaviour
         if (!gameObject.activeInHierarchy) return;
         ImageScale();
         correctCount = 0;
+        clock.SetActive(true);
+        crossButton.SetActive(false);
+        tryAgainBadge.SetActive(false);
         wrongCount = 0;
         currentQuestion = 0;
         if (badgeImage != null) badgeImage.gameObject.SetActive(false);

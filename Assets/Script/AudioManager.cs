@@ -24,6 +24,12 @@ public class AudioManager : MonoBehaviour
         {
             Debug.Log("Error Playing Audio");
         }
-      
+
+    }
+    
+
+    public void StopAll()
+    {
+        audioSource.Stop();
     }
 }

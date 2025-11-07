@@ -10,7 +10,7 @@ public class TypewriterTMP : MonoBehaviour
 {
 
     [Header("Target")]
-    [SerializeField] TMP_Text targetText;
+    [SerializeField] public TMP_Text targetText;
 
     [Header("Timing")]
     [Tooltip("Characters per second (base).")]
