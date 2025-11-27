@@ -159,6 +159,9 @@ MonoBehaviour:
   snapBounceScale: 1.08
   placementZone: {fileID: 0}
   outline: {fileID: 760501701647283888}
+  smallParachute: {fileID: 4730476428931557683}
+  largeParachute: {fileID: 6630677916692432040}
+  parachuteClipName: Object_0
 --- !u!1 &592924037627675746
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,7 +430,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7838811186135863961
 Transform:
   m_ObjectHideFlags: 0
@@ -457,7 +460,7 @@ Animation:
   m_Animations:
   - {fileID: 7400000, guid: c1fe424646ec4dc40871aca5e23af248, type: 2}
   m_WrapMode: 0
-  m_PlayAutomatically: 1
+  m_PlayAutomatically: 0
   m_AnimatePhysics: 0
   m_UpdateMode: 0
   m_CullingType: 0
@@ -610,7 +613,7 @@ SkinnedMeshRenderer:
   - 0
   - 0
   - 0
-  - 0
+  - 0.99999905
   - 0
   - 0
   - 0
@@ -830,7 +833,7 @@ SkinnedMeshRenderer:
   - 0
   - 0
   - 0
-  - 0
+  - 0.99999905
   - 0
   - 0
   - 0
@@ -1013,7 +1016,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4768062495763517712
 Transform:
   m_ObjectHideFlags: 0
@@ -1023,8 +1026,8 @@ Transform:
   m_GameObject: {fileID: 6630677916692432040}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.78, z: 0}
-  m_LocalScale: {x: 0.1134335, y: 0.1134335, z: 0.1134335}
+  m_LocalPosition: {x: 0, y: -1.29, z: 0}
+  m_LocalScale: {x: 0.16978496, y: 0.08383342, z: 0.15586652}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5126037578535206984}
@@ -1043,7 +1046,7 @@ Animation:
   m_Animations:
   - {fileID: 7400000, guid: c1fe424646ec4dc40871aca5e23af248, type: 2}
   m_WrapMode: 0
-  m_PlayAutomatically: 1
+  m_PlayAutomatically: 0
   m_AnimatePhysics: 0
   m_UpdateMode: 0
   m_CullingType: 0

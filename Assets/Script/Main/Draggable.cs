@@ -5,35 +5,37 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Collider))]
 public class Draggable : MonoBehaviour
 {
-    [Header("Identity")]
     public ShapeType shapeType = ShapeType.Cube;
 
-    [Header("Camera & Drag")]
-    public Camera cam; // optional, default to Camera.main
-    [Tooltip("If set (>= -999), this value will be used as the fixed Z coordinate for the object. Otherwise initial Z will be used.")]
+    [Header("Drag / Camera")]
+    public Camera cam;
     public float fixedZ = -999f;
 
     [Header("Collision")]
     public LayerMask obstacleLayers;
-    [Tooltip("Padding subtracted from collider extents for overlap checks.")]
     public float collisionPadding = 0.01f;
 
     [Header("Return / Snap")]
     public bool smoothReturn = true;
-    public float returnSpeed = 8f;     // larger = faster return
+    public float returnSpeed = 8f;
     public float snapDuration = 0.25f;
-    [Tooltip("Scale multiplier applied during snap bounce (1 = no bounce).")]
     public float snapBounceScale = 1.08f;
 
     [Header("Placement")]
-    public PlacementZone placementZone; // set by spawner or inspector
+    public PlacementZone placementZone;
 
     [Header("Visuals")]
-    [Tooltip("Outline GameObject (child) to show when idle at original position.")]
     public GameObject outline;
 
-    // runtime state
-    public bool InPlacementZone { get; private set; } = false; // visual flag
+    [Header("Parachutes (assign in inspector)")]
+    public GameObject smallParachute;
+    public GameObject largeParachute;
+
+    [Header("Animation")]
+    public string parachuteClipName = "Object_0";
+
+    // runtime
+    public bool InPlacementZone { get; private set; } = false;
     public bool IsPlaced { get; private set; } = false;
 
     // internals
@@ -46,11 +48,11 @@ public class Draggable : MonoBehaviour
     private Vector3 colliderCenterOffset;
     private Vector3 worldExtents;
 
-    // dragging state
+    // drag state
     private bool dragging = false;
     private int pointerId = -1;
 
-    // move queue for physics-friendly movement
+    // physics move queue
     private Vector3 _queuedPosition;
     private bool _hasQueuedPosition = false;
 
@@ -59,10 +61,12 @@ public class Draggable : MonoBehaviour
 
     private const float ORIGINAL_POS_EPS = 0.001f;
 
+    // simulation state
+    private bool _isSimulating = false;
+
     private void Awake()
     {
         EnsureRigidbody();
-
         objectCollider = GetComponent<Collider>();
         if (cam == null) cam = Camera.main;
 
@@ -77,18 +81,14 @@ public class Draggable : MonoBehaviour
         UpdateColliderInfo();
         UpdateOutlineInitial();
 
-        if (placementZone != null)
-            placementZone.ShowPlacement(false);
+        // initial parachute state off by default
+        SetParachuteActive(false, false);
+        if (placementZone != null) placementZone.ShowPlacement(false);
     }
 
     private void Start()
     {
-        if (placementZone == null)
-        {
-            placementZone = FindObjectOfType<PlacementZone>();
-            if (placementZone != null)
-                placementZone.ShowPlacement(false);
-        }
+        if (placementZone == null) placementZone = FindObjectOfType<PlacementZone>();
     }
 
     private void EnsureRigidbody()
@@ -110,8 +110,7 @@ public class Draggable : MonoBehaviour
     public void SetPlacementZone(PlacementZone zone)
     {
         placementZone = zone;
-        if (placementZone != null)
-            placementZone.ShowPlacement(false);
+        if (placementZone != null) placementZone.ShowPlacement(false);
     }
 
     private void OnEnable()
@@ -126,6 +125,7 @@ public class Draggable : MonoBehaviour
 
     private void UpdateColliderInfo()
     {
+        if (objectCollider == null) objectCollider = GetComponent<Collider>();
         Bounds b = objectCollider.bounds;
         worldExtents = b.extents - Vector3.one * collisionPadding;
         worldExtents.x = Mathf.Max(worldExtents.x, 0.01f);
@@ -143,7 +143,7 @@ public class Draggable : MonoBehaviour
 
     private void Update()
     {
-        if (IsPlaced) return;
+        if (IsPlaced || _isSimulating) return;
 
         if (Input.GetMouseButtonDown(0) && !IsPointerOverUI())
             TryStartDrag(Input.mousePosition, 0);
@@ -182,10 +182,8 @@ public class Draggable : MonoBehaviour
                 if (smoothReturnRoutine != null) { StopCoroutine(smoothReturnRoutine); smoothReturnRoutine = null; }
                 UpdateColliderInfo();
 
-                if (AdvancedOrbitCamera.instance != null)
-                    AdvancedOrbitCamera.instance.canOrbit = false;
+                if (AdvancedOrbitCamera.instance != null) AdvancedOrbitCamera.instance.canOrbit = false;
 
-                // visuals: turn off outline, show only the placement visual for this shape
                 if (outline != null) outline.SetActive(false);
                 if (placementZone != null) placementZone.ShowPlacementForDraggable(this, true);
             }
@@ -216,7 +214,7 @@ public class Draggable : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_hasQueuedPosition && _rb != null && !IsPlaced)
+        if (_hasQueuedPosition && _rb != null && !IsPlaced && !_isSimulating)
         {
             _rb.MovePosition(_queuedPosition);
             _hasQueuedPosition = false;
@@ -228,16 +226,12 @@ public class Draggable : MonoBehaviour
         dragging = false;
         pointerId = -1;
 
-        // hide any placement visuals for this shape
-        if (placementZone != null)
-            placementZone.ShowPlacementForDraggable(this, false);
+        if (placementZone != null) placementZone.ShowPlacementForDraggable(this, false);
 
-        if (placementZone == null)
-            placementZone = FindObjectOfType<PlacementZone>();
+        if (placementZone == null) placementZone = FindObjectOfType<PlacementZone>();
 
         bool trackedInside = placementZone != null && placementZone.IsDraggableInside(this);
         bool geoInside = placementZone != null && placementZone.ContainsPoint(transform.position);
-
         bool actuallyInside = trackedInside && geoInside;
 
         if (actuallyInside && placementZone != null)
@@ -260,18 +254,13 @@ public class Draggable : MonoBehaviour
             }
             else
             {
-                if (_rb != null)
-                    _rb.MovePosition(originalPosition);
-                else
-                    transform.position = originalPosition;
-
+                if (_rb != null) _rb.MovePosition(originalPosition); else transform.position = originalPosition;
                 transform.rotation = originalRotation;
                 if (outline != null) outline.SetActive(true);
             }
         }
 
-        if (AdvancedOrbitCamera.instance != null)
-            AdvancedOrbitCamera.instance.canOrbit = true;
+        if (AdvancedOrbitCamera.instance != null) AdvancedOrbitCamera.instance.canOrbit = true;
     }
 
     private IEnumerator SmoothReturnCoroutine()
@@ -292,11 +281,7 @@ public class Draggable : MonoBehaviour
             t += Time.deltaTime / dur;
             float eased = Mathf.SmoothStep(0f, 1f, t);
             Vector3 pos = Vector3.Lerp(start, end, eased);
-            if (_rb != null)
-                _rb.MovePosition(pos);
-            else
-                transform.position = pos;
-
+            if (_rb != null) _rb.MovePosition(pos); else transform.position = pos;
             transform.rotation = Quaternion.Slerp(startRot, endRot, eased);
             yield return null;
         }
@@ -304,7 +289,6 @@ public class Draggable : MonoBehaviour
         if (_rb != null) _rb.MovePosition(end); else transform.position = end;
         transform.rotation = endRot;
         smoothReturnRoutine = null;
-
         if (outline != null) outline.SetActive(true);
     }
 
@@ -322,11 +306,7 @@ public class Draggable : MonoBehaviour
             float t = Mathf.Clamp01(elapsed / duration);
             float e = Mathf.SmoothStep(0f, 1f, t);
             Vector3 pos = Vector3.Lerp(startPos, targetPos, e);
-            if (_rb != null)
-                _rb.MovePosition(pos);
-            else
-                transform.position = pos;
-
+            if (_rb != null) _rb.MovePosition(pos); else transform.position = pos;
             transform.rotation = Quaternion.Slerp(startRot, targetRot, e);
 
             if (t < 0.5f)
@@ -351,14 +331,119 @@ public class Draggable : MonoBehaviour
         snapRoutine = null;
     }
 
-    // predictive overlap test that ignores own colliders
+    // ---------- SIMULATION API ----------
+
+    public void SetParachuteActive(bool smallOn, bool largeOn)
+    {
+        if (smallParachute != null) smallParachute.SetActive(smallOn);
+        if (largeParachute != null) largeParachute.SetActive(largeOn);
+    }
+
+    public void PlayParachuteAnimation()
+    {
+        if (!string.IsNullOrEmpty(parachuteClipName))
+        {
+            if (smallParachute != null && smallParachute.activeSelf)
+            {
+                var anim = smallParachute.GetComponent<Animation>();
+                if (anim != null && anim.GetClip(parachuteClipName) != null)
+                {
+                    anim.Play(parachuteClipName);
+                }
+            }
+
+            if (largeParachute != null && largeParachute.activeSelf)
+            {
+                var anim = largeParachute.GetComponent<Animation>();
+                if (anim != null && anim.GetClip(parachuteClipName) != null)
+                {
+                    anim.Play(parachuteClipName);
+                }
+            }
+        }
+    }
+
+    private void StopParachuteAnimations()
+    {
+        if (smallParachute != null)
+        {
+            var anim = smallParachute.GetComponent<Animation>();
+            if (anim != null) anim.Stop();
+        }
+
+        if (largeParachute != null)
+        {
+            var anim = largeParachute.GetComponent<Animation>();
+            if (anim != null) anim.Stop();
+        }
+    }
+
+    public IEnumerator SlideToAndDropRoutine(Vector3 slideTarget, float slideDuration, float dropDuration, System.Action<float> onComplete = null)
+    {
+        _isSimulating = true;
+        dragging = false;
+        pointerId = -1;
+
+        if (placementZone != null) placementZone.ShowPlacementForDraggable(this, false);
+
+        Vector3 start = transform.position;
+        float elapsed = 0f;
+        while (elapsed < slideDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / slideDuration);
+            Vector3 pos = Vector3.Lerp(start, slideTarget, t);
+            if (_rb != null) _rb.MovePosition(pos); else transform.position = pos;
+            yield return null;
+        }
+
+        if (_rb != null) _rb.MovePosition(slideTarget); else transform.position = slideTarget;
+
+        // start drop
+        PlayParachuteAnimation();
+
+        Vector3 dropStart = transform.position;
+        float dropElapsed = 0f;
+        float tStart = Time.time;
+        while (dropElapsed < dropDuration)
+        {
+            dropElapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(dropElapsed / dropDuration);
+            float y = Mathf.Lerp(dropStart.y, originalY, t);
+            Vector3 pos = new Vector3(dropStart.x, y, dropStart.z);
+            if (_rb != null) _rb.MovePosition(pos); else transform.position = pos;
+            yield return null;
+        }
+
+        Vector3 finalPos = new Vector3(dropStart.x, originalY, dropStart.z);
+        if (_rb != null) _rb.MovePosition(finalPos); else transform.position = finalPos;
+
+        // stop parachute anims on landing
+        StopParachuteAnimations();
+
+        float tEnd = Time.time;
+        float realTimeTaken = tEnd - tStart;
+        Debug.Log($"[Simulation] Shape {shapeType} finished drop. Expected {dropDuration:F2}s, actual {realTimeTaken:F2}s");
+
+        onComplete?.Invoke(realTimeTaken);
+
+        _isSimulating = false;
+        if (outline != null) outline.SetActive(false);
+        yield break;
+    }
+
+    public void StartSlideAndDrop(MonoBehaviour host, Vector3 slideTarget, float slideDuration, float dropDuration, System.Action<float> onComplete)
+    {
+        host.StartCoroutine(SlideToAndDropRoutine(slideTarget, slideDuration, dropDuration, onComplete));
+    }
+
+    // ---------- end SIM API ----------
+
     private bool CanMoveTo(Vector3 desiredPosition)
     {
         Vector3 checkCenter = desiredPosition + colliderCenterOffset;
         Collider[] hits = Physics.OverlapBox(checkCenter, worldExtents, transform.rotation, obstacleLayers, QueryTriggerInteraction.Ignore);
-
         if (hits == null || hits.Length == 0) return true;
-
         foreach (var c in hits)
         {
             if (c == null) continue;
@@ -366,19 +451,11 @@ public class Draggable : MonoBehaviour
             if (c.transform.IsChildOf(transform)) continue;
             return false;
         }
-
         return true;
     }
 
-    public void NotifyEnteredPlacementZone()
-    {
-        InPlacementZone = true;
-    }
-
-    public void NotifyExitedPlacementZone()
-    {
-        InPlacementZone = false;
-    }
+    public void NotifyEnteredPlacementZone() { InPlacementZone = true; }
+    public void NotifyExitedPlacementZone() { InPlacementZone = false; }
 
     private bool IsPointerOverUI()
     {
@@ -386,21 +463,8 @@ public class Draggable : MonoBehaviour
 #if UNITY_EDITOR
         return EventSystem.current.IsPointerOverGameObject();
 #else
-        if (Input.touchCount > 0)
-            return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+        if (Input.touchCount > 0) return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
         return EventSystem.current.IsPointerOverGameObject();
-#endif
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-#if UNITY_EDITOR
-        if (objectCollider == null) objectCollider = GetComponent<Collider>();
-        if (objectCollider == null) return;
-        UpdateColliderInfo();
-        Gizmos.color = Color.cyan;
-        Vector3 center = transform.position + colliderCenterOffset;
-        Gizmos.DrawWireCube(center, worldExtents * 2f);
 #endif
     }
 }
