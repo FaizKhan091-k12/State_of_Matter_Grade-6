@@ -6,6 +6,11 @@ public enum ParachuteSize { None, Small, Large }
 
 public class SimulationManager : MonoBehaviour
 {
+
+    public bool isLevelTwo = false;
+public Draggable[] level2Objects;       // 3 objects for level 2
+public Transform[] level2SlideTargets;  // 3 slide targets for level 2
+
     [Header("References")]
     public ShapeSpawner spawner;
     public Draggable currentDraggable;

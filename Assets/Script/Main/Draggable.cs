@@ -1,3 +1,5 @@
+// Draggable.cs
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -32,9 +34,10 @@ public class Draggable : MonoBehaviour
     public GameObject largeParachute;
 
     [Header("Animation")]
+    [Tooltip("Name of the legacy Animation clip on parachute GameObjects.")]
     public string parachuteClipName = "Object_0";
 
-    // runtime
+    // runtime state
     public bool InPlacementZone { get; private set; } = false;
     public bool IsPlaced { get; private set; } = false;
 
@@ -61,8 +64,15 @@ public class Draggable : MonoBehaviour
 
     private const float ORIGINAL_POS_EPS = 0.001f;
 
-    // simulation state
+    // simulation state & timer
     private bool _isSimulating = false;
+    public bool IsSimulating => _isSimulating;
+    private float _simStartTime = 0f;
+    public float SimulationElapsed { get; private set; } = 0f;
+
+    // events (optional)
+    public Action OnSimulationStarted;
+    public Action<float> OnSimulationEnded; // passes final time
 
     private void Awake()
     {
@@ -81,7 +91,7 @@ public class Draggable : MonoBehaviour
         UpdateColliderInfo();
         UpdateOutlineInitial();
 
-        // initial parachute state off by default
+        // default parachutes off
         SetParachuteActive(false, false);
         if (placementZone != null) placementZone.ShowPlacement(false);
     }
@@ -95,16 +105,12 @@ public class Draggable : MonoBehaviour
     {
         _rb = GetComponent<Rigidbody>();
         if (_rb == null)
-        {
             _rb = gameObject.AddComponent<Rigidbody>();
-            _rb.isKinematic = true;
-            _rb.useGravity = false;
-        }
-        else
-        {
-            _rb.isKinematic = true;
-            _rb.useGravity = false;
-        }
+
+        _rb.isKinematic = true;
+        _rb.useGravity = false;
+        _rb.interpolation = RigidbodyInterpolation.None;
+        _rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
     }
 
     public void SetPlacementZone(PlacementZone zone)
@@ -145,6 +151,7 @@ public class Draggable : MonoBehaviour
     {
         if (IsPlaced || _isSimulating) return;
 
+        // Mouse
         if (Input.GetMouseButtonDown(0) && !IsPointerOverUI())
             TryStartDrag(Input.mousePosition, 0);
 
@@ -154,6 +161,7 @@ public class Draggable : MonoBehaviour
         if (dragging && pointerId == 0)
             ContinueDrag(Input.mousePosition);
 
+        // Touch
         if (Input.touchCount > 0)
         {
             Touch t = Input.GetTouch(0);
@@ -331,7 +339,7 @@ public class Draggable : MonoBehaviour
         snapRoutine = null;
     }
 
-    // ---------- SIMULATION API ----------
+    // ---------- Simulation API ----------
 
     public void SetParachuteActive(bool smallOn, bool largeOn)
     {
@@ -378,14 +386,24 @@ public class Draggable : MonoBehaviour
         }
     }
 
-    public IEnumerator SlideToAndDropRoutine(Vector3 slideTarget, float slideDuration, float dropDuration, System.Action<float> onComplete = null)
+    /// <summary>
+    /// Slide the object to a start position (world) over 'slideDuration' seconds, then start drop.
+    /// The final reported time (onComplete) is forced to the authoritative dropDuration.
+    /// </summary>
+    public IEnumerator SlideToAndDropRoutine(Vector3 slideTarget, float slideDuration, float dropDuration, Action<float> onComplete = null)
     {
+        // begin simulation timing (we will use dropDuration as final authoritative value)
         _isSimulating = true;
+        _simStartTime = Time.time;
+        SimulationElapsed = 0f;
+        OnSimulationStarted?.Invoke();
+
         dragging = false;
         pointerId = -1;
 
         if (placementZone != null) placementZone.ShowPlacementForDraggable(this, false);
 
+        // SLIDE phase
         Vector3 start = transform.position;
         float elapsed = 0f;
         while (elapsed < slideDuration)
@@ -394,55 +412,81 @@ public class Draggable : MonoBehaviour
             float t = Mathf.Clamp01(elapsed / slideDuration);
             Vector3 pos = Vector3.Lerp(start, slideTarget, t);
             if (_rb != null) _rb.MovePosition(pos); else transform.position = pos;
+
+            // update sim timer if you want to display total (slide + drop) comment/uncomment:
+            SimulationElapsed = (Time.time - _simStartTime);
+
             yield return null;
         }
 
         if (_rb != null) _rb.MovePosition(slideTarget); else transform.position = slideTarget;
 
-        // start drop
+        // start drop: play parachute animation (legacy Animation)
         PlayParachuteAnimation();
 
+        // DROP phase - use dropElapsed to drive LERP and timer
         Vector3 dropStart = transform.position;
         float dropElapsed = 0f;
-        float tStart = Time.time;
+
         while (dropElapsed < dropDuration)
         {
             dropElapsed += Time.deltaTime;
             float t = Mathf.Clamp01(dropElapsed / dropDuration);
+
             float y = Mathf.Lerp(dropStart.y, originalY, t);
             Vector3 pos = new Vector3(dropStart.x, y, dropStart.z);
             if (_rb != null) _rb.MovePosition(pos); else transform.position = pos;
+
+            // update SimulationElapsed to reflect fall time (so display shows 0..dropDuration)
+            SimulationElapsed = dropElapsed;
+
             yield return null;
         }
 
+        // finalize at originalY
         Vector3 finalPos = new Vector3(dropStart.x, originalY, dropStart.z);
         if (_rb != null) _rb.MovePosition(finalPos); else transform.position = finalPos;
 
-        // stop parachute anims on landing
+        // stop parachute animations when landed
         StopParachuteAnimations();
 
-        float tEnd = Time.time;
-        float realTimeTaken = tEnd - tStart;
-        Debug.Log($"[Simulation] Shape {shapeType} finished drop. Expected {dropDuration:F2}s, actual {realTimeTaken:F2}s");
+        // ENSURE the final displayed time equals the authoritative dropDuration (table value)
+        SimulationElapsed = dropDuration;
 
-        onComplete?.Invoke(realTimeTaken);
+        // invoke callback with the authoritative value so data table matches exactly
+        onComplete?.Invoke(dropDuration);
+        OnSimulationEnded?.Invoke(SimulationElapsed);
 
+        // end simulation
         _isSimulating = false;
+        _simStartTime = 0f;
+
         if (outline != null) outline.SetActive(false);
+
         yield break;
     }
 
-    public void StartSlideAndDrop(MonoBehaviour host, Vector3 slideTarget, float slideDuration, float dropDuration, System.Action<float> onComplete)
+    /// <summary>
+    /// Convenience wrapper used by SimulationManager: starts coroutine on this object.
+    /// </summary>
+    public void StartSlideAndDrop(MonoBehaviour host, Vector3 slideTarget, float slideDuration, float dropDuration, Action<float> onComplete)
     {
         host.StartCoroutine(SlideToAndDropRoutine(slideTarget, slideDuration, dropDuration, onComplete));
     }
 
-    // ---------- end SIM API ----------
+    // ---------- end simulation API ----------
 
     private bool CanMoveTo(Vector3 desiredPosition)
     {
         Vector3 checkCenter = desiredPosition + colliderCenterOffset;
+
+        bool hadEnabled = objectCollider.enabled;
+        objectCollider.enabled = false;
+
         Collider[] hits = Physics.OverlapBox(checkCenter, worldExtents, transform.rotation, obstacleLayers, QueryTriggerInteraction.Ignore);
+
+        objectCollider.enabled = hadEnabled;
+
         if (hits == null || hits.Length == 0) return true;
         foreach (var c in hits)
         {
@@ -454,8 +498,15 @@ public class Draggable : MonoBehaviour
         return true;
     }
 
-    public void NotifyEnteredPlacementZone() { InPlacementZone = true; }
-    public void NotifyExitedPlacementZone() { InPlacementZone = false; }
+    public void NotifyEnteredPlacementZone()
+    {
+        InPlacementZone = true;
+    }
+
+    public void NotifyExitedPlacementZone()
+    {
+        InPlacementZone = false;
+    }
 
     private bool IsPointerOverUI()
     {
@@ -463,8 +514,21 @@ public class Draggable : MonoBehaviour
 #if UNITY_EDITOR
         return EventSystem.current.IsPointerOverGameObject();
 #else
-        if (Input.touchCount > 0) return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
+        if (Input.touchCount > 0)
+            return EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId);
         return EventSystem.current.IsPointerOverGameObject();
+#endif
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+#if UNITY_EDITOR
+        if (objectCollider == null) objectCollider = GetComponent<Collider>();
+        if (objectCollider == null) return;
+        UpdateColliderInfo();
+        Gizmos.color = Color.cyan;
+        Vector3 center = transform.position + colliderCenterOffset;
+        Gizmos.DrawWireCube(center, worldExtents * 2f);
 #endif
     }
 }
