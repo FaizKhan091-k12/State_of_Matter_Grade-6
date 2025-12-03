@@ -7,6 +7,9 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(Collider))]
 public class Draggable : MonoBehaviour
 {
+    public L1Audiomanager l1Audiomanager;
+    public SimulationManager simulationManager;
+    public bool isCube;
     public ShapeType shapeType = ShapeType.Cube;
 
     [Header("Drag / Camera")]
@@ -238,12 +241,35 @@ public class Draggable : MonoBehaviour
 
         if (placementZone == null) placementZone = FindObjectOfType<PlacementZone>();
 
+
+
+
+
         bool trackedInside = placementZone != null && placementZone.IsDraggableInside(this);
         bool geoInside = placementZone != null && placementZone.ContainsPoint(transform.position);
         bool actuallyInside = trackedInside && geoInside;
 
         if (actuallyInside && placementZone != null)
         {
+
+            if (isCube)
+            {
+                if (l1Audiomanager == null && simulationManager == null)
+                {
+                    simulationManager = FindFirstObjectByType<SimulationManager>();
+                    l1Audiomanager = FindFirstObjectByType<L1Audiomanager>();
+                    if (simulationManager.dropCount == 0)
+                    {
+                        l1Audiomanager.PlaySpecificAudio(3);
+
+                    }
+                    if (simulationManager.dropCount == 1)
+                    {
+                        l1Audiomanager.PlaySpecificAudio(5);
+                    }
+                }
+            }
+
             Transform anchor = placementZone.GetSnapAnchorFor(this);
             Vector3 snapTarget = anchor != null ? anchor.position : placementZone.transform.position;
             snapTarget.y = Mathf.Max(snapTarget.y, originalY);
@@ -252,6 +278,7 @@ public class Draggable : MonoBehaviour
 
             if (snapRoutine != null) StopCoroutine(snapRoutine);
             snapRoutine = StartCoroutine(SnapToAnchorRoutine(snapTarget, snapRot, snapDuration));
+
         }
         else
         {

@@ -16,6 +16,8 @@ public class SimulationResetter : MonoBehaviour
 
     // Store the active instance for each level index (null when not instantiated)
     private GameObject[] currentInstances;
+    public GameObject[] level2Off, level2On;
+    public GameObject[] level1Off;
 
     private void Awake()
     {
@@ -102,6 +104,21 @@ public class SimulationResetter : MonoBehaviour
             return;
         }
 
+        if (currentLevelIndex == 0)
+        {
+            foreach (var item in level1Off)
+            {
+                item.SetActive(false);
+            }
+        }
+        if (currentLevelIndex == 1)
+        {
+            foreach (var item in level2Off)
+            {
+                item.SetActive(false);
+                level2On[0].SetActive(true);
+            }
+        }
         // destroy existing instance
         if (currentInstances[currentLevelIndex] != null)
         {

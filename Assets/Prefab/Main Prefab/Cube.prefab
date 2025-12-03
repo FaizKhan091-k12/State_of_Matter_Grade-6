@@ -211,6 +211,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da20a3d12b05d0b47ab2ef9b3b429ee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draggable
+  l1Audiomanager: {fileID: 0}
+  simulationManager: {fileID: 0}
+  isCube: 1
   shapeType: 0
   cam: {fileID: 0}
   fixedZ: -999
@@ -924,7 +927,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeDisplayTMP
   draggable: {fileID: 0}
-  hideWhenIdle: 1
+  hideUntilSimStart: 1
   prefix: 
   suffix: s
   numberFormat: F2

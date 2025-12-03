@@ -4,73 +4,61 @@ using UnityEngine.UI;
 
 public class DataTableManager : MonoBehaviour
 {
-    [Header("UI References")]
-    public RectTransform contentParent;      // the ScrollRect content (vertical layout)
-    public GameObject dataRowPrefab;         // the prefab with DataRow component
-    public int maxRows = 100;                // optional cap, 0 = unlimited
+    [Header("Table Setup")]
+    public RectTransform contentParent;
+    public GameObject dataRowPrefab;
+
+    [Header("Row Colors")]
+    public Color cubeColor = new Color(0.3f, 0.8f, 0.4f);        // green
+    public Color sphereColor = new Color(0.2f, 0.5f, 1f);        // blue
+    public Color streamlinedColor = new Color(1f, 0.6f, 0.2f);   // orange
 
     private List<GameObject> _rows = new List<GameObject>();
 
     /// <summary>
-    /// Add a row to the table. timeSeconds will be formatted automatically to "0.00s"
+    /// Adds a new row to the table.
     /// </summary>
-    public void AddRow(string shape, string airResistance, string parachuteArea, float timeSeconds)
+    public void AddRow(string shape, string air, string parachute, float timeSeconds)
     {
         if (dataRowPrefab == null || contentParent == null)
         {
-            Debug.LogWarning("[DataTableManager] Prefab or contentParent missing.");
+            Debug.LogWarning("[DataTableManager] Missing references!");
             return;
         }
 
-        // create
-        GameObject go = Instantiate(dataRowPrefab, contentParent);
-        go.transform.SetAsLastSibling();
+        // Instantiate row
+        GameObject rowGO = Instantiate(dataRowPrefab, contentParent);
+        rowGO.transform.SetAsLastSibling();
 
-        // set values
-        DataRow dr = go.GetComponent<DataRow>();
+        // Choose color based on shape
+        Color iconColor = ColorForShape(shape);
+
+        // Fill row
+        DataRow dr = rowGO.GetComponent<DataRow>();
         if (dr != null)
         {
-            string timeStr = $"{timeSeconds:F2}s";
-            dr.SetRow(shape, airResistance, parachuteArea, timeStr);
-        }
-        else
-        {
-            // fallback: try to find text children by name (optional)
-            var texts = go.GetComponentsInChildren<Text>();
-            if (texts.Length >= 4)
-            {
-                texts[0].text = shape;
-                texts[1].text = airResistance;
-                texts[2].text = parachuteArea;
-                texts[3].text = $"{timeSeconds:F2}s";
-            }
+            dr.SetRow(
+                shape,
+                air,
+                parachute,
+                $"{timeSeconds:F2}s",
+                iconColor);
         }
 
-        _rows.Add(go);
-
-        // optional culling: keep table manageable
-        if (maxRows > 0 && _rows.Count > maxRows)
-        {
-            Destroy(_rows[0]);
-            _rows.RemoveAt(0);
-        }
-
-        Canvas.ForceUpdateCanvases(); // ensure layout updated (useful before scrolling)
-        // Optional: scroll to bottom if you have a ScrollRect parent
-        var sc = contentParent.GetComponentInParent<ScrollRect>();
-        if (sc != null)
-        {
-            sc.verticalNormalizedPosition = 0f; // bottom
-        }
+        _rows.Add(rowGO);
     }
 
     /// <summary>
-    /// Clear all rows
+    /// Returns inspector-assigned color based on shape text.
     /// </summary>
-    public void Clear()
+    private Color ColorForShape(string shape)
     {
-        foreach (var r in _rows)
-            if (r != null) Destroy(r);
-        _rows.Clear();
+        switch (shape)
+        {
+            case "Cube": return cubeColor;
+            case "Sphere": return sphereColor;
+            case "Streamlined": return streamlinedColor;
+        }
+        return Color.white;
     }
 }

@@ -197,8 +197,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 2.25
-  m_fontSizeBase: 2.25
+  m_fontSize: 3.05
+  m_fontSizeBase: 3.05
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -257,7 +257,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimeDisplayTMP
   draggable: {fileID: 0}
-  hideWhenIdle: 1
+  hideUntilSimStart: 1
   prefix: 
   suffix: s
   numberFormat: F2
@@ -1141,6 +1141,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da20a3d12b05d0b47ab2ef9b3b429ee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Draggable
+  l1Audiomanager: {fileID: 0}
+  simulationManager: {fileID: 0}
+  isCube: 0
   shapeType: 3
   cam: {fileID: 0}
   fixedZ: -999

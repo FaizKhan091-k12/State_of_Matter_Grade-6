@@ -16,14 +16,27 @@ public class Question
     public int correctIndex;                    // Index of correct option
     [TextArea(1, 2)] public string correctFeedback;
     [TextArea(1, 2)] public string wrongFeedback;
+
+    [Header("Per-question audio (optional)")]
+    public AudioClip correctAudio;              // play when user picks correct option for this question
+    public AudioClip wrongAudio;                // play when user picks wrong option (not used for timer expired)
 }
 
 public class QuizManager : MonoBehaviour
 {
     [Header("External")]
     public TypewriterTMP typewriterTMP;
-   // public BoyDialogueBehaviour boyDialogueBehaviour;
     public AudioSource youdid, greatEfforts;
+
+    [Header("Quiz SFX")]
+    public AudioClip correctSFX;    // fallback global correct
+    public AudioClip wrongSFX;      // fallback global wrong (used for wrong clicks fallback)
+    public AudioClip winSFX;
+    public AudioClip tryAgainSFX;
+    [Tooltip("Clip to play specifically when time runs out (preferred over wrongSFX).")]
+    public AudioClip timeUpClip;
+    [Tooltip("AudioSource used for SFX playback. If null, PlayClipAtPoint will be used.")]
+    public AudioSource sfxAudioSource;
 
     [Header("UI References")]
     public TextMeshProUGUI topicText;
@@ -52,7 +65,6 @@ public class QuizManager : MonoBehaviour
     public Sprite redTestTubeSprite;
     public ProceduralImage happy, sad;
     public float ease_Speed;
-
 
     [Header("Badge System")]
     public Image badgeImage;                 // Optional image to show badge
@@ -87,13 +99,13 @@ public class QuizManager : MonoBehaviour
     // timer coroutine handle
     private Coroutine timerCoroutine;
     public GameObject crossButton, clock, tryAgainBadge;
-    public GameObject completed_Quiz, select_Text,lastGameObject;
+    public GameObject completed_Quiz, select_Text, lastGameObject;
     public TextMeshProUGUI duplicateText;
     public GameObject right, wrong;
+    public TextMeshProUGUI endQuizText;
 
     void OnEnable()
     {
-        // Make sure quiz restarts cleanly
         RestartQuiz();
     }
 
@@ -104,6 +116,43 @@ public class QuizManager : MonoBehaviour
         nextButton.gameObject.SetActive(false);
         if (badgeImage != null) badgeImage.gameObject.SetActive(false);
         ShowQuestion();
+    }
+
+    /// <summary>
+    /// Stops any currently playing SFX on the sfxAudioSource.
+    /// Call this from a UI button to immediately cut audio.
+    /// </summary>
+    public void StopAllQuizAudio()
+    {
+        if (sfxAudioSource != null)
+            sfxAudioSource.Stop();
+    }
+
+    /// <summary>
+    /// Hook this to a UI button if you want a stop button.
+    /// </summary>
+    public void OnStopAudioButton()
+    {
+        StopAllQuizAudio();
+    }
+
+    /// <summary>
+    /// Play an audio clip using sfxAudioSource if available. Does not overlap previous - stops first.
+    /// </summary>
+    void PlayOneShot(AudioClip clip)
+    {
+        if (clip == null) return;
+
+        // Stop any currently playing SFX before starting a new one (prevents overlap)
+        if (sfxAudioSource != null)
+        {
+            sfxAudioSource.Stop();
+            sfxAudioSource.PlayOneShot(clip);
+        }
+        else
+        {
+            AudioSource.PlayClipAtPoint(clip, Camera.main != null ? Camera.main.transform.position : Vector3.zero);
+        }
     }
 
     void ShowQuestion()
@@ -151,8 +200,6 @@ public class QuizManager : MonoBehaviour
             if (img != null)
             {
                 img.color = defaultButtonColor;
-                // optional: reset sprite to null if you replaced previously
-                // img.sprite = null;
             }
 
             TextMeshProUGUI label = btn.GetComponentInChildren<TextMeshProUGUI>();
@@ -205,6 +252,19 @@ public class QuizManager : MonoBehaviour
         if (correct) correctCount++;
         else wrongCount++;
 
+        // Stop any playing audio and then play per-question or fallback SFX
+        StopAllQuizAudio();
+        if (correct)
+        {
+            if (q.correctAudio != null) PlayOneShot(q.correctAudio);
+            else PlayOneShot(correctSFX);
+        }
+        else
+        {
+            if (q.wrongAudio != null) PlayOneShot(q.wrongAudio);
+            else PlayOneShot(wrongSFX);
+        }
+
         // Update feedback text and color
         Color greenColor = timerFullColor;
         Color redColor = timerEmptyColor;
@@ -220,7 +280,7 @@ public class QuizManager : MonoBehaviour
             Image btnImage = clickedBtn.GetComponent<Image>();
             TextMeshProUGUI clickedLabel = clickedBtn.GetComponentInChildren<TextMeshProUGUI>();
 
-            // change clicked text color to selected color (white)
+            // change clicked text color to selected color
             if (clickedLabel != null)
                 clickedLabel.color = selectedTextColor;
 
@@ -241,21 +301,23 @@ public class QuizManager : MonoBehaviour
             else
                 clickedBtn.interactable = false;
 
-
             if (correct)
             {
-                happy.transform.localScale = Vector3.zero;
-                sad.transform.localScale = Vector3.zero;
-
-                happy.transform.DOScale(new Vector3(3,3,3), ease_Speed).SetEase(Ease.InOutFlash);
-
+                if (happy != null)
+                {
+                    happy.transform.localScale = Vector3.zero;
+                    sad.transform.localScale = Vector3.zero;
+                    happy.transform.DOScale(new Vector3(3, 3, 3), ease_Speed).SetEase(Ease.InOutFlash);
+                }
             }
             else
             {
-                happy.transform.localScale = Vector3.zero;
-                sad.transform.localScale = Vector3.zero;
-
-                sad.transform.DOScale(new Vector3(3,3,3), ease_Speed).SetEase(Ease.InOutFlash);
+                if (sad != null)
+                {
+                    happy.transform.localScale = Vector3.zero;
+                    sad.transform.localScale = Vector3.zero;
+                    sad.transform.DOScale(new Vector3(3, 3, 3), ease_Speed).SetEase(Ease.InOutFlash);
+                }
             }
         }
 
@@ -290,8 +352,8 @@ public class QuizManager : MonoBehaviour
 
     public void ImageScale()
     {
-         happy.transform.localScale = Vector3.zero;
-        sad.transform.localScale = Vector3.zero;
+        if (happy != null) happy.transform.localScale = Vector3.zero;
+        if (sad != null) sad.transform.localScale = Vector3.zero;
     }
 
     #region Timer API
@@ -356,20 +418,23 @@ public class QuizManager : MonoBehaviour
     /// <summary>
     /// Called when the question timer expires without an answer.
     /// This will reveal the correct answer, disable buttons and show feedback.
+    /// Uses the dedicated timeUpClip (if assigned) rather than per-question wrongAudio.
     /// </summary>
     void OnTimerExpired()
     {
         if (answered) return;
         answered = true;
 
-        // Play encouragement or reveal sound (optional)
-        // (you could play a sound here)
+        Question q = questions[currentQuestion];
+
+        // Stop any currently playing SFX and play timeUpClip (or fallback wrongSFX)
+        StopAllQuizAudio();
+        if (timeUpClip != null) PlayOneShot(timeUpClip);
+        else PlayOneShot(wrongSFX);
 
         // Reveal correct answer visually
-        Question q = questions[currentQuestion];
         int correctIndex = q.correctIndex;
 
-        // Mark correct answer visually
         if (correctIndex >= 0 && correctIndex < spawnedButtons.Count)
         {
             Button correctBtn = spawnedButtons[correctIndex];
@@ -387,7 +452,6 @@ public class QuizManager : MonoBehaviour
                 btnImage.color = timerFullColor;
             }
 
-            // optional disable clicked component
             if (disableClickedButtonComponent) correctBtn.enabled = false;
             else correctBtn.interactable = false;
         }
@@ -457,52 +521,60 @@ public class QuizManager : MonoBehaviour
 
         if (perfectScore)
         {
-            // 🎖️ Matter Master unlocked
-            feedbackText.text = $" All {score}/{total} correct!\n Badge Unlocked: <b>Matter Master!</b>";
+            // play per-quiz win SFX
+            //StopAllQuizAudio();
+            GetComponent<AudioSource>().PlayOneShot(winSFX);
+
+             feedbackText.text =
+                $"Correct Answers: {correctCount}\nWrong Answers: {wrongCount}\n"
+                ;
             lastGameObject.SetActive(true);
             duplicateText.text = feedbackText.text;
-            right.SetActive(false);
-            wrong.SetActive(false);
+            right.SetActive(true);
+            wrong.SetActive(true);
             if (badgeImage != null && matterMasterBadge != null)
             {
                 badgeImage.sprite = matterMasterBadge;
                 badgeImage.gameObject.SetActive(true);
-               // if (boyDialogueBehaviour != null) { boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox(); }
                 if (typewriterTMP != null)
                 {
+                  
                     clock.SetActive(false);
                     crossButton.SetActive(true);
                     completed_Quiz.SetActive(true);
                     select_Text.SetActive(false);
-                  //  boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox();
-                    typewriterTMP.TypeText("You did it, Particle Explorer! You’ve mastered the States of Matter.", 15f);
+                    endQuizText.text = "Congratulations! You’ve mastered how shape, surface area, and air resistance affect motion.";
+                    Debug.Log("Quiz Ends");
                 }
                 if (youdid != null) youdid.Play();
             }
         }
         else
         {
-           // if (boyDialogueBehaviour != null) { boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox(); }
+            // play try again SFX
+           // StopAllQuizAudio();
+           GetComponent<AudioSource>().PlayOneShot(tryAgainSFX);
+
             if (typewriterTMP != null)
             {
-              //  boyDialogueBehaviour.isOpen = false; boyDialogueBehaviour.OpenDialogueBox();
+               
                 tryAgainBadge.SetActive(true);
-                typewriterTMP.TypeText("Great effort! Try again to earn your <b>Matter Master</b> badge.", 15f);
                 clock.SetActive(false);
                 crossButton.SetActive(true);
                 completed_Quiz.SetActive(true);
                 select_Text.SetActive(false);
+                endQuizText.text = "You’re close! Try again to earn your Air Resistance Explorer badge!";
+                Debug.Log("Quiz Ends");
             }
-                
+
             if (greatEfforts != null) greatEfforts.Play();
 
-            // Encouragement message
             feedbackText.text =
                 $"Correct Answers: {correctCount}\nWrong Answers: {wrongCount}\n"
                 ;
             duplicateText.text = feedbackText.text;
-                    right.SetActive(true);
-        wrong.SetActive(true);
+            right.SetActive(true);
+            wrong.SetActive(true);
             lastGameObject.SetActive(true);
             if (badgeImage != null)
                 badgeImage.gameObject.SetActive(false);
