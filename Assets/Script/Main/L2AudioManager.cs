@@ -19,7 +19,7 @@ public class L2Audiomanager : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
 
 
-        typewriterTMP.TypeText("Attach all the objects to the parachute.Run the simulation with both small and large parachutes and observe how each object falls with air resistance on and off.", 15f);
+        typewriterTMP.TypeText("Attach all the objects to the parachute. Run the simulation with both small and large parachutes and observe how each object falls with air resistance on and off.", 15f);
 
 
 

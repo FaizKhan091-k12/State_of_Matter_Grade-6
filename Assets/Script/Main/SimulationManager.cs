@@ -13,6 +13,7 @@ public class SimulationManager : MonoBehaviour
     public bool dataFirst;
     public bool nextLevel;
     public Button dataBtn;
+
 public GameObject datahigh,dataCloseHigh;
     [Header("Level 2 Audio Config")]
     [SerializeField] bool temp;
@@ -43,7 +44,7 @@ public GameObject datahigh,dataCloseHigh;
 
     private ParachuteSize selectedParachute = ParachuteSize.None;
     private Dictionary<ShapeType, float[,]> durationTable;
-    private bool _isSimulating = false;
+    public bool _isSimulating = false;
 
     // NEW: Track whether level2 simulation already ran (prevent auto re-enable)
     private bool level2HasRun = false;
@@ -126,7 +127,7 @@ public GameObject datahigh,dataCloseHigh;
 
        
         
-
+        
 
         if (simulateButton != null)
         {
@@ -134,6 +135,7 @@ public GameObject datahigh,dataCloseHigh;
             simulateButton.interactable = (allPlaced && !_isSimulating && !level2HasRun);
             smallParaButton.interactable = (allPlaced && !_isSimulating && !level2HasRun);
             largeParaButton.interactable = (allPlaced && !_isSimulating && !level2HasRun);
+           
             if(airResistanceButton != null)
             {
                   airResistanceButton.interactable = (allPlaced && !_isSimulating && !level2HasRun);

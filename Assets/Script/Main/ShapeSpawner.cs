@@ -9,10 +9,13 @@ public class ShapeSpawner : MonoBehaviour
     public PlacementZone placementZone; // assign in inspector
 
     [SerializeField]private GameObject current;
+    public SimulationManager simulationManager;
 
     public int temp;
     public void SpawnShape(int index)
     {
+        if(simulationManager._isSimulating) return;
+
         if (index < 0 || index >= shapePrefabs.Length)
         {
             Debug.LogWarning("SpawnShape index out of range");

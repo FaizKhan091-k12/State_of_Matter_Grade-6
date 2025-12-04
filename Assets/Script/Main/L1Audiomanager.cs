@@ -20,14 +20,22 @@ public class L1Audiomanager : MonoBehaviour
 
     if (!canvas.activeInHierarchy)
     {
-      PlaySpecificAudio(1);
-      typewriterTMP.TypeText("Let’s start the simulation with keeping shape constant. Select the first shape ‘Cube’ to test.", 15f);
+      PlayFirstAudio(); 
     }
 
 
   }
 
+  public void PlayFirstAudio()
+    {
+        Invoke(nameof(LateEntry), 1f);
+    }
 
+  public void LateEntry()
+  {
+    PlaySpecificAudio(1);
+    typewriterTMP.TypeText("Let’s start the simulation with keeping shape constant. Select the first shape ‘Cube’ to test.", 15f);
+  }
   public void PlaySpecificAudio(int clipsIndex)
   {
     StopAudioSource();
@@ -40,7 +48,7 @@ public class L1Audiomanager : MonoBehaviour
     }
     if (audioIndex == 1)
     {
-      typewriterTMP.TypeText("Let’s start the simulation with keeping air resistance constant. Select the first shape ‘Cube’ to test.", 15f);
+      typewriterTMP.TypeText("Let’s start the simulation with keeping shape constant. Select the first shape ‘Cube’ to test.", 15f);
 
     }
     if (audioIndex == 2)
@@ -61,11 +69,11 @@ public class L1Audiomanager : MonoBehaviour
     }
     if (audioIndex == 6)
     {
-      typewriterTMP.TypeText("Now Reset. And drop the cube with small parachute with Air Resistance ‘ON’.", 15f);
+      typewriterTMP.TypeText("Now Reset. And drop the cube with small parachute with air Resistance ‘ON’.", 15f);
     }
     if (audioIndex == 7)
     {
-      typewriterTMP.TypeText("Click reset and finally drop the cube with the larger parachute and Air Resistance ‘ON’. Notice the time of fall. ", 15f);
+      typewriterTMP.TypeText("Click reset and finally drop the cube with the larger parachute and air Resistance ‘ON’. Notice the time of fall. ", 15f);
     }
     if (audioIndex == 8)
     {
@@ -73,7 +81,7 @@ public class L1Audiomanager : MonoBehaviour
     }
     if (audioIndex == 9)
     {
-      typewriterTMP.TypeText("The data shows that the time of fall is same when air resistance is absence and when air resistance is present the larger parachute experiences more resistance which increases the time of fall. now let's close the data sheet.", 15f);
+      typewriterTMP.TypeText("The data shows that the time of fall is same when air resistance is absent and when air resistance is present the larger parachute experiences more resistance which increases the time of fall.", 15f);
     }
     if (audioIndex == 10)
     {

@@ -8,7 +8,7 @@ public class UIController : MonoBehaviour
     public bool isLevelone;
     public SimulationManager simulationManager;
     public static UIController Instance;
-    public GameObject streamLineHigh,sphereHigh;
+    public GameObject streamLineHigh, sphereHigh;
     [Header("UI Elements")]
     public Button[] lockedUI; // Surface Area buttons, Air toggle, Simulate button
     public Button[] shapeButtons; // shape selection buttons (kept enabled)
@@ -38,6 +38,7 @@ public class UIController : MonoBehaviour
 
     }
 
+   
     public void UnlockControls()
     {
         if (isLevelone)
@@ -53,7 +54,7 @@ public class UIController : MonoBehaviour
                 foreach (var go in lockedUI)
                     go.interactable = true;
                 airToggle.interactable = false;
- LargeBalloongHighLighted.SetActive(true);
+                LargeBalloongHighLighted.SetActive(true);
             }
             if (simulationManager.dropCount == 2)
             {
@@ -77,7 +78,7 @@ public class UIController : MonoBehaviour
                     go.interactable = true;
 
                 airToggle.interactable = true;
-              
+
                 //   LargeBalloongHighLighted.SetActive(true);
             }
 
@@ -85,10 +86,10 @@ public class UIController : MonoBehaviour
             {
                 foreach (var go in lockedUI)
                     go.interactable = true;
-  
+
                 airToggle.interactable = true;
 
-       
+
                 //   LargeBalloongHighLighted.SetActive(true);
             }
         }
@@ -120,7 +121,7 @@ public class UIController : MonoBehaviour
     }
     public void Starthighlighted()
     {
-                   streamLineHigh.SetActive(true);
-                sphereHigh.SetActive(true);
+        streamLineHigh.SetActive(true);
+        sphereHigh.SetActive(true);
     }
 }

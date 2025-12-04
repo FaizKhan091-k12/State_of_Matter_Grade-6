@@ -418,7 +418,9 @@ public class Draggable : MonoBehaviour
     /// The final reported time (onComplete) is forced to the authoritative dropDuration.
     /// </summary>
     public IEnumerator SlideToAndDropRoutine(Vector3 slideTarget, float slideDuration, float dropDuration, Action<float> onComplete = null)
-    {
+    {    // if object got destroyed, don't run coroutine
+    if (IsDestroyed()) yield break;
+
         // begin simulation timing (we will use dropDuration as final authoritative value)
         _isSimulating = true;
         _simStartTime = Time.time;
@@ -434,7 +436,7 @@ public class Draggable : MonoBehaviour
         Vector3 start = transform.position;
         float elapsed = 0f;
         while (elapsed < slideDuration)
-        {
+        {  if (IsDestroyed()) yield break; 
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / slideDuration);
             Vector3 pos = Vector3.Lerp(start, slideTarget, t);
@@ -456,7 +458,7 @@ public class Draggable : MonoBehaviour
         float dropElapsed = 0f;
 
         while (dropElapsed < dropDuration)
-        {
+        {  if (IsDestroyed()) yield break; 
             dropElapsed += Time.deltaTime;
             float t = Mathf.Clamp01(dropElapsed / dropDuration);
 
@@ -524,7 +526,10 @@ public class Draggable : MonoBehaviour
         }
         return true;
     }
-
+    private bool IsDestroyed()
+{
+    return this == null || gameObject == null;
+}
     public void NotifyEnteredPlacementZone()
     {
         InPlacementZone = true;
